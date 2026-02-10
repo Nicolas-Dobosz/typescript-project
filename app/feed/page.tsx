@@ -3,10 +3,14 @@
 import {useEffect, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {auth} from '@/app/lib/auth';
+import MyButton from '../components/Button';
+import PostCard from '../components/PostCard';
 
 export default function Page() {
 	const router = useRouter();
 	const [users, setUsers] = useState<any[]>([]);
+	const [posts, setPosts] = useState<any[]>([]);
+
 
 	useEffect(() => {
 
@@ -14,6 +18,20 @@ export default function Page() {
 			router.push('/login');
 			return;
 		}
+
+		fetch('/api/posts')
+			.then(res => {
+				if (!res.ok) throw new Error('Réponse serveur non-JSON');
+				return res.json();
+			})
+			.then(data => {
+				setPosts(data.posts || []);
+			})
+			.catch(error => {
+				console.error("Erreur de fetch :", error);
+			});
+
+
 
 		fetch('/api/users')
 			.then(res => res.json())
@@ -28,10 +46,24 @@ export default function Page() {
 
 
 	return (
-		<ul>
-			{users.map(user => (
-				<li key={user.id}>{user.name}</li>
+		<>
+			<ul>
+				{users.map(user => (
+					<li key={user.id}>{user.name}</li>
+				))}
+			</ul>
+			<div className="flex flex-col justify-center items-center gap-6">
+			{posts.map(post => (
+				<PostCard 
+					key={post.id}
+					author={post.authorName}
+					title={post.content}
+					image={post.image || 'https://media.istockphoto.com/id/1500645450/fr/photo/image-floue-de-mouvement-de-la-circulation-sur-lautoroute.jpg?s=1024x1024&w=is&k=20&c=Kk2o63jL7LXfCs1MGT7NdeKldSQ-PXEAZYu0TJ_peH4='}
+					likes={12}
+				/>
 			))}
-		</ul>
+			</div>
+		</>
 	);
+	
 }

@@ -1,8 +1,9 @@
 import {dbAll, dbGet, dbRun} from '@/app/lib/db';
+import { User } from './User';
 
 export interface Post {
 	id: number;
-	userId: number;
+	username: User;
 	content: string;
 	image: string | null;
 	creationDate: string;
@@ -25,7 +26,8 @@ export const PostModel = {
 	},
 
 	async findAll(): Promise<Post[]> {
-		return await dbAll<Post>('SELECT * FROM post ORDER BY creationDate DESC');
+		
+		return await dbAll<Post>('SELECT post.*, user.name as authorName FROM post INNER JOIN user ON post.userId = user.id ORDER BY post.creationDate DESC');
 	},
 
 	async findByUserId(userId: number): Promise<Post[]> {
