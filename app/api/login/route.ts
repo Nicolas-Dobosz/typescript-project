@@ -1,63 +1,63 @@
-import { NextRequest, NextResponse } from 'next/server';
+import {NextRequest, NextResponse} from 'next/server';
 import bcrypt from 'bcryptjs';
-import { prisma } from '@/app/lib/prisma';
-import { generateToken } from '@/app/lib/jwt';
+import {initDB} from '@/app/lib/db';
+import {UserModel} from '@/app/models';
+import {generateToken} from '@/app/lib/jwt';
 
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { email, password } = body;
+	try {
+		await initDB();
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email et mot de passe requis' },
-        { status: 400 }
-      );
-    }
+		const body = await request.json();
+		const {email, password} = body;
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+		if (!email || !password) {
+			return NextResponse.json(
+				{error: 'Email et mot de passe requis'},
+				{status: 400}
+			);
+		}
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Email ou mot de passe incorrect' },
-        { status: 401 }
-      );
-    }
+		const user = await UserModel.findByEmail(email);
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+		if (!user) {
+			return NextResponse.json(
+				{error: 'Email ou mot de passe incorrect'},
+				{status: 401}
+			);
+		}
 
-    if (!isPasswordValid) {
-      return NextResponse.json(
-        { error: 'Email ou mot de passe incorrect' },
-        { status: 401 }
-      );
-    }
+		const isPasswordValid = await bcrypt.compare(password, user.password);
 
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-    });
+		if (!isPasswordValid) {
+			return NextResponse.json(
+				{error: 'Email ou mot de passe incorrect'},
+				{status: 401}
+			);
+		}
 
-    return NextResponse.json(
-      {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          picture: user.picture,
-        },
-        token,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error('Erreur lors de la connexion:', error);
-    return NextResponse.json(
-      { error: 'Erreur serveur lors de la connexion' },
-      { status: 500 }
-    );
-  }
+		const token = generateToken({
+			userId: user.id,
+			email: user.email,
+		});
+
+		return NextResponse.json(
+			{
+				user: {
+					id: user.id,
+					name: user.name,
+					email: user.email,
+					picture: user.picture,
+				},
+				token,
+			},
+			{status: 200}
+		);
+	} catch (error) {
+		console.error('Erreur lors de la connexion:', error);
+		return NextResponse.json(
+			{error: 'Erreur serveur lors de la connexion'},
+			{status: 500}
+		);
+	}
 }
-
