@@ -37,5 +37,9 @@ export const LikeModel = {
 	async deleteForPost(postId: number): Promise<void> {
 		await dbRun('DELETE FROM "like" WHERE postId = ?', [postId]);
 	},
+
+	async delete(userId: number, postId: number): Promise<void> {
+		await dbRun('DELETE FROM "like" WHERE userId = ? AND postId = ?', [userId, postId]);
+	},
 };
 

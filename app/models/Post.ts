@@ -68,6 +68,14 @@ export const PostModel = {
 		return post;
 	},
 
+	async updateLike(id: number, currentUserId: number): Promise<void> {
+		if (await LikeModel.exists(currentUserId, id)) {
+			await LikeModel.delete(currentUserId, id)
+		} else {
+			await LikeModel.create(currentUserId, id);
+		}
+	},
+
 	async delete(id: number): Promise<void> {
 		await dbRun('DELETE FROM post WHERE id = ?', [id]);
 		await LikeModel.deleteForPost(id);
