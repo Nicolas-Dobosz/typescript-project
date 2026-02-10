@@ -1,20 +1,20 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {initDB} from '@/app/lib/db';
-import {UserModel} from '@/app/models';
+import {PostModel} from '@/app/models';
 
 export async function GET(request: NextRequest) {
 	try {
 		await initDB();
 
-		const users = await UserModel.findAll();
+		const posts = await PostModel.findAll();
 
 		return NextResponse.json({
-			users: users.map(u => ({
-				id: u.id,
-				name: u.name,
-				
-				email: u.email,
-				picture: u.picture,
+			posts: posts.map(p => ({
+				id: p.id,
+				authorName: p.authorName,
+				content: p.content,
+				image: p.image,
+				picture: p.creationDate,
 			})),
 		});
 	} catch (error) {
