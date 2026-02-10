@@ -1,4 +1,5 @@
 import {dbAll, dbGet, dbRun} from '@/app/lib/db';
+import {LikeModel} from './Like';
 import { User } from './User';
 
 export interface Post {
@@ -7,6 +8,8 @@ export interface Post {
 	content: string;
 	image: string | null;
 	creationDate: string;
+	likeCount?: number;
+	isLikedByUser?: boolean;
 }
 
 export const PostModel = {
@@ -21,24 +24,41 @@ export const PostModel = {
 		return post;
 	},
 
-	async findById(id: number): Promise<Post | undefined> {
-		return await dbGet<Post>('SELECT * FROM post WHERE id = ?', [id]);
+	async findById(id: number, userId?: number): Promise<Post> {
+		const post = await dbGet<Post>('SELECT * FROM post WHERE id = ?', [id]);
+		if (!post) throw new Error('Post non trouvé');
+		return {
+			...post,
+			likeCount: await LikeModel.countByPostId(post.id),
+			isLikedByUser: userId ? await LikeModel.exists(userId, post.id) : false,
+		};
 	},
 
-	async findAll(): Promise<Post[]> {
-		
-		return await dbAll<Post>('SELECT post.*, user.name as authorName FROM post INNER JOIN user ON post.userId = user.id ORDER BY post.creationDate DESC');
+	async findAll(userId?: number): Promise<Post[]> {
+		const posts = await this.findAll();
+		return Promise.all(
+			posts.map(async (post) => ({
+				...post,
+				likeCount: await LikeModel.countByPostId(post.id),
+				isLikedByUser: userId ? await LikeModel.exists(userId, post.id) : false,
+			}))
+		);
 	},
 
-	async findByUserId(userId: number): Promise<Post[]> {
-		return await dbAll<Post>('SELECT * FROM post WHERE userId = ? ORDER BY creationDate DESC', [userId]);
+	async findByUserId(userId: number, currentUserId?: number): Promise<Post[]> {
+		const posts = await this.findByUserId(userId);
+		return Promise.all(
+			posts.map(async (post) => ({
+				...post,
+				likeCount: await LikeModel.countByPostId(post.id),
+				isLikedByUser: currentUserId ? await LikeModel.exists(currentUserId, post.id) : false,
+			}))
+		);
 	},
 
 	async update(id: number, data: any): Promise<Post> {
 		const fields = Object.keys(data).map(k => `${k} = ?`).join(', ');
-		await dbRun(`UPDATE post
-                     SET ${fields}
-                     WHERE id = ?`, [...Object.values(data), id]);
+		await dbRun(`UPDATE post SET ${fields} WHERE id = ?`, [...Object.values(data), id]);
 		const post = await this.findById(id);
 		if (!post) throw new Error('Post non trouvé');
 		return post;
@@ -46,6 +66,7 @@ export const PostModel = {
 
 	async delete(id: number): Promise<void> {
 		await dbRun('DELETE FROM post WHERE id = ?', [id]);
+		await LikeModel.deleteForPost(id)
 	},
 };
 

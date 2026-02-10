@@ -26,14 +26,6 @@ export const LikeModel = {
 		return !!like;
 	},
 
-	async findByPostId(postId: number): Promise<Like[]> {
-		return await dbAll<Like>('SELECT * FROM "like" WHERE postId = ?', [postId]);
-	},
-
-	async findByUserId(userId: number): Promise<Like[]> {
-		return await dbAll<Like>('SELECT * FROM "like" WHERE userId = ?', [userId]);
-	},
-
 	async countByPostId(postId: number): Promise<number> {
 		const result = await dbGet<{ count: number }>(
 			'SELECT COUNT(*) as count FROM "like" WHERE postId = ?',
@@ -42,8 +34,8 @@ export const LikeModel = {
 		return result?.count || 0;
 	},
 
-	async delete(userId: number, postId: number): Promise<void> {
-		await dbRun('DELETE FROM "like" WHERE userId = ? AND postId = ?', [userId, postId]);
+	async deleteForPost(postId: number): Promise<void> {
+		await dbRun('DELETE FROM "like" WHERE postId = ?', [postId]);
 	},
 };
 
