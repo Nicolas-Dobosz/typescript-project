@@ -8,8 +8,8 @@ export interface Post {
 	content: string;
 	image: string | null;
 	creationDate: string;
-	likeCount?: number;
-	isLikedByUser?: boolean;
+	likeCount: number;
+	isLikedByUser: boolean;
 }
 
 export const PostModel = {
@@ -21,32 +21,36 @@ export const PostModel = {
 
 		const post = await dbGet<Post>('SELECT * FROM post WHERE id = ?', [result.lastID]);
 		if (!post) throw new Error('Erreur lors de la création du post');
-		return post;
+		return {
+			...post,
+			likeCount: 0,
+			isLikedByUser: false,
+		};
 	},
 
-	async findById(id: number, userId?: number): Promise<Post> {
+	async findById(id: number, currentUserId?: number): Promise<Post> {
 		const post = await dbGet<Post>('SELECT * FROM post WHERE id = ?', [id]);
 		if (!post) throw new Error('Post non trouvé');
 		return {
 			...post,
 			likeCount: await LikeModel.countByPostId(post.id),
-			isLikedByUser: userId ? await LikeModel.exists(userId, post.id) : false,
+			isLikedByUser: currentUserId ? await LikeModel.exists(currentUserId, post.id) : false,
 		};
 	},
 
-	async findAll(userId?: number): Promise<Post[]> {
-		const posts = await this.findAll();
+	async findAll(currentUserId?: number): Promise<Post[]> {
+		const posts = await dbAll<Post>('SELECT * FROM post', []);
 		return Promise.all(
 			posts.map(async (post) => ({
 				...post,
 				likeCount: await LikeModel.countByPostId(post.id),
-				isLikedByUser: userId ? await LikeModel.exists(userId, post.id) : false,
+				isLikedByUser: currentUserId ? await LikeModel.exists(currentUserId, post.id) : false,
 			}))
 		);
 	},
 
 	async findByUserId(userId: number, currentUserId?: number): Promise<Post[]> {
-		const posts = await this.findByUserId(userId);
+		const posts = await dbAll<Post>('SELECT * FROM post WHERE userId = ?', [userId]);
 		return Promise.all(
 			posts.map(async (post) => ({
 				...post,
@@ -66,7 +70,7 @@ export const PostModel = {
 
 	async delete(id: number): Promise<void> {
 		await dbRun('DELETE FROM post WHERE id = ?', [id]);
-		await LikeModel.deleteForPost(id)
+		await LikeModel.deleteForPost(id);
 	},
 };
 
