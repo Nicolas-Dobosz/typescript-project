@@ -4,13 +4,14 @@ import {FormEvent, useEffect, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
 import {auth} from '@/app/lib/auth';
+import {PASSWORD_RULE_MESSAGE, validateEmail, validatePassword} from '@/app/lib/validations';
 
 export default function RegisterPage() {
 	const router = useRouter();
-	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
-	const [name, setName] = useState('');
-	const [error, setError] = useState('');
+	const [email, setEmail] = useState<string>('');
+	const [password, setPassword] = useState<string>('');
+	const [name, setName] = useState<string>('');
+	const [error, setError] = useState<string>('');
 
 	useEffect(() => {
 		if (auth.isAuthenticated()) {
@@ -27,8 +28,15 @@ export default function RegisterPage() {
 			return;
 		}
 
-		if (password.length < 6) {
-			setError('Mot de passe trop court (min 6 caractères)');
+		const passwordValidation = validatePassword(password);
+		if (!passwordValidation.valid) {
+			setError(passwordValidation.message || PASSWORD_RULE_MESSAGE);
+			return;
+		}
+
+		const emailValidation = validateEmail(email);
+		if (!emailValidation.valid) {
+			setError(emailValidation.message || 'Email invalide');
 			return;
 		}
 
@@ -84,7 +92,7 @@ export default function RegisterPage() {
 
 					<input
 						type="password"
-						placeholder="Mot de passe (min 6 caractères)"
+						placeholder="Mot de passe (min 9 caracteres, majuscule, chiffre, special)"
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 						className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
