@@ -14,21 +14,28 @@ export async function GET(
 
         console.log("Recherche en BDD pour ID:", numericId);
 
-        const post = await PostModel.findById(numericId);
+        const postDetail = await PostModel.findPostDetailById(numericId);
 
-        if (!post) {
-            return NextResponse.json({ error: 'Non trouvé' }, { status: 404 });
+        if (!postDetail) {
+            return NextResponse.json({ error: 'Post non trouvé' }, { status: 404 });
         }
 
         return NextResponse.json({
-            id: post.id,
-            name: post.userId,
-            email: post.content,
-            picture: post.image,
-            creation_date: post.creationDate,
+            id: postDetail.id,
+            content: postDetail.content,
+            image: postDetail.image,
+            creationDate: postDetail.creationDate,
+            // Infos de l'auteur du post
+            author: {
+                name: postDetail.authorName,
+                picture: postDetail.authorPicture
+            },
+            // Liste des commentaires avec le nom des commentateurs
+            comments: postDetail.comments
         });
+
     } catch (error) {
-        console.error(error);
+        console.error("Erreur API PostDetail:", error);
         return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
     }
 }

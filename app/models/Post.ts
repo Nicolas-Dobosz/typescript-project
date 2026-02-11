@@ -45,5 +45,32 @@ export const PostModel = {
 	async delete(id: number): Promise<void> {
 		await dbRun('DELETE FROM post WHERE id = ?', [id]);
 	},
+
+	async findPostDetailById(id: number): Promise<any> {
+        // 1. On récupère le post et l'auteur
+        const postWithAuthor = await dbGet<any>(`
+            SELECT p.*, u.name as authorName, u.picture as authorPicture
+            FROM post p
+            JOIN user u ON p.userId = u.id
+            WHERE p.id = ?
+        `, [id]);
+
+        if (!postWithAuthor) return null;
+
+        // 2. On récupère les commentaires liés avec le prénom (name) de chaque commentateur
+        const comments = await dbAll<any>(`
+            SELECT c.*, u.name as commenterName
+            FROM comment c
+            JOIN user u ON c.userId = u.id
+            WHERE c.postId = ?
+            ORDER BY c.creationDate ASC
+        `, [id]);
+
+        // 3. On fusionne le tout dans un seul objet
+        return {
+            ...postWithAuthor,
+            comments: comments
+        };
+    },
 };
 
