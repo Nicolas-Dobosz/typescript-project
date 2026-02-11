@@ -1,6 +1,6 @@
 'use client'; // On ajoute ça pour pouvoir gérer le clic sur le bouton Like plus tard
 
-import { useState } from 'react';
+import {useState} from 'react';
 
 interface PostCardProps {
     title: string;
@@ -18,7 +18,7 @@ export default function PostCard({
     image = "/docs/images/blog/image-1.jpg", 
     likes = 0
 }: PostCardProps) {
-    const [isLiked, setIsLiked] = useState(false);
+    const [isLiked, setIsLiked] = useState<boolean>(false);
 
     return (
         <div className="max-w-md bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-8">
