@@ -1,7 +1,5 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {initDB} from '@/app/lib/db';
-import {verifyToken} from '@/app/lib/jwt';
-import {LikeModel} from '@/app/models/Like';
 import {auth} from "@/app/lib/auth";
 import {PostModel} from "@/app/models";
 

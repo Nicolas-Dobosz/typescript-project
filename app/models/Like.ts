@@ -14,7 +14,7 @@ export const LikeModel = {
 		);
 
 		const like = await dbGet<Like>('SELECT * FROM "like" WHERE id = ?', [result.lastID]);
-		if (!like) throw new Error('Erreur lors de la création du like');
+		if (!like) throw new Error('Error creating like');
 		return like;
 	},
 
