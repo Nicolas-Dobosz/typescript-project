@@ -41,8 +41,10 @@ export const PostModel = {
 		return this.enrichPost(post, currentUserId);
 	},
 
-	async findAll(currentUserId?: number): Promise<Post[]> {
-		const posts = await dbAll<Post>('SELECT * FROM post', []);
+	async findAll(currentUserId?: number, limit: number=10, offset: number=0): Promise<Post[]> {
+		const posts = await dbAll<Post>('SELECT * FROM post ORDER BY post.creationDate DESC LIMIT ? OFFSET ?', 
+			[limit, offset]
+		);
 		return Promise.all(posts.map(post => this.enrichPost(post, currentUserId)));
 	},
 
