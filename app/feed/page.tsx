@@ -1,10 +1,9 @@
 'use client';
 
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {auth} from '@/app/lib/auth';
 import CreatPostModal from '../components/createPost';
-import MyButton from '../components/Button';
 import PostCard from '../components/PostCard';
 import {Post, User} from "@/app/models";
 
@@ -16,6 +15,15 @@ export default function Page() {
 	const closeModal = () => {setModalOpen(false)};
 	const [users, setUsers] = useState<User[]>([]);
 	const [posts, setPosts] = useState<Post[]>([]);
+
+	const [filter, setFilter] = useState<'following' | 'for-you'>('for-you');
+
+	const onClickForYou = () => {
+		setFilter('for-you');
+	}
+	const onClickFollows = () => {
+		setFilter('following');
+	}
 
 
 	useEffect(() => {
@@ -48,7 +56,40 @@ export default function Page() {
 			.catch(error => {
 				console.error(error);
 			});
-	}, [router]);
+		}, [router]);
+
+	useEffect(() => {
+		if (filter === "for-you") {
+			fetch('/api/posts')
+				.then(res => {
+					if (!res.ok) throw new Error('Réponse serveur non-JSON');
+					return res.json();
+				})
+				.then(data => {
+					setPosts(data.posts || []);
+				})
+				.catch(error => {
+					console.error("Erreur de fetch :", error);
+				});
+		}
+
+		if (filter === "following") {
+			console.log('/api/posts/following/'+auth.getUser().id)
+			fetch('/api/posts/following/'+auth.getUser().id)
+				.then(res => {
+					if (!res.ok) throw new Error('Réponse serveur non-JSON');
+					return res.json();
+				})
+				.then(data => {
+					setPosts(data.posts || []);
+				})
+				.catch(error => {
+					console.error("Erreur de fetch :", error);
+				});
+
+			console.log("ok")
+		}
+	}, [filter]);
 
 
 
@@ -62,6 +103,28 @@ export default function Page() {
 				))}
 			</ul>
 			<div className="flex flex-col justify-center items-center gap-6">
+				<div className="flex flex-row items-center w-full max-w-2xl gap-[1vw]">
+					<button
+						onClick={onClickFollows}
+						className={`transition-all rounded-lg px-[1vw] py-[1vh] ${
+							filter === 'following' 
+								? 'bg-white text-indigo-900 border-2 border-indigo-500' 
+								: 'bg-indigo-500 hover:bg-indigo-900 text-white'
+						}`}
+					>
+						Suivis
+					</button>
+					<button
+						onClick={onClickForYou}
+						className={`transition-all rounded-lg px-[1vw] py-[1vh] ${
+							filter === 'for-you' 
+								? 'bg-white text-indigo-900 border-2 border-indigo-500' 
+								: 'bg-indigo-500 hover:bg-indigo-900 text-white'
+						}`}
+					>
+						Pour toi
+					</button>
+				</div>
 			{posts.map(post => (
 				<PostCard 
 					key={post.id}

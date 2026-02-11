@@ -51,6 +51,27 @@ export const PostModel = {
 		return Promise.all(posts.map(post => this.enrichPost(post, currentUserId)));
 	},
 
+	async findPostsFollowersByUserId(userId: number, currentUserId?: number): Promise<Post[]> {
+		console.log("===== DEBUG findPostsFollowersByUserId =====");
+		console.log("userId (followerId):", userId, "type:", typeof userId);
+		console.log("currentUserId:", currentUserId);
+
+		const query = `SELECT post.* FROM post 
+			INNER JOIN follow ON post.userId = follow.userId 
+			WHERE follow.followerId = ?
+			ORDER BY post.creationDate DESC`;
+
+		console.log("SQL Query:", query);
+		console.log("Paramètres:", [userId]);
+
+		const posts = await dbAll<Post>(query, [userId]);
+
+		console.log("Posts bruts de la requête SQL:", posts);
+		console.log("Nombre de posts bruts:", posts.length);
+
+		return Promise.all(posts.map(post => this.enrichPost(post, currentUserId)));
+	},
+
 	async update(id: number, data: any): Promise<Post> {
 		const fields = Object.keys(data).map(k => `${k} = ?`).join(', ');
 		await dbRun(`UPDATE post SET ${fields} WHERE id = ?`, [...Object.values(data), id]);
