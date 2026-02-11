@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SocialMediaSlop
 
-## Getting Started
+Une application de réseau social moderne construite avec **Next.js**, **TypeScript**, **SQLite** et **Tailwind CSS**.
 
-First, run the development server:
+## 📋 Description
 
+SocialMediaSlop est une plateforme de partage social qui permet aux utilisateurs de :
+- 👤 Créer un compte et gérer leur profil
+- 📝 Publier des posts avec du texte et des images
+- ❤️ Liker les posts d'autres utilisateurs
+- 👥 Suivre d'autres utilisateurs
+- 🔐 S'authentifier de manière sécurisée avec JWT
+
+## 🚀 Démarrage rapide
+
+### Prérequis
+- Node.js 18+ 
+- npm ou yarn
+
+### Installation
+
+1. Clonez le projet et installez les dépendances :
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Lancez le serveur de développement :
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📦 Stack technologique
 
-## Learn More
+- **Frontend** : [Next.js 16](https://nextjs.org) avec [React 19](https://react.dev)
+- **Styling** : [Tailwind CSS](https://tailwindcss.com)
+- **Base de données** : [SQLite](https://www.sqlite.org)
+- **Authentification** : [JWT](https://jwt.io) + [bcryptjs](https://github.com/dcodeIO/bcrypt.js)
+- **Langage** : [TypeScript](https://www.typescriptlang.org)
 
-To learn more about Next.js, take a look at the following resources:
+## 📁 Structure du projet
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+app/
+├── api/                 # Routes API (login, register, posts, likes, followers)
+├── components/          # Composants réutilisables (Button, PostCard, etc.)
+├── models/              # Modèles de données (User, Post, Like, Follow)
+├── lib/                 # Utilitaires (auth, jwt, validations, db)
+├── feed/                # Page du flux
+├── login/               # Page de connexion
+├── register/            # Page d'inscription
+├── profile/             # Pages de profil
+└── post/                # Page détail d'un post
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔑 Fonctionnalités principales
 
-## Deploy on Vercel
+### Authentification
+- Inscription et connexion sécurisées
+- Tokens JWT pour les sessions
+- Hachage des mots de passe avec bcryptjs
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Gestion des posts
+- Créer, lire et supprimer des posts
+- Support des images
+- Système de likes
+- Compteur de likes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Profil utilisateur
+- Voir et modifier son profil
+- Afficher les posts de l'utilisateur
+- Gestion des followers
+
+## 🛠️ Scripts disponibles
+
+- `npm run dev` - Lance le serveur de développement
+- `npm run build` - Compile le projet
+- `npm start` - Lance le serveur en production
+
+## 📝 API Endpoints
+
+- `POST /api/register` - Créer un nouveau compte
+- `POST /api/login` - Se connecter
+- `GET /api/posts` - Récupérer tous les posts
+- `POST /api/createPost` - Créer un post
+- `POST /api/like/[postId]` - Liker un post
+- `GET /api/user/[id]` - Récupérer les infos d'un utilisateur
+- `GET /api/followers/count/[userId]` - Compter les followers
+
+## 🔒 Sécurité
+
+- Mots de passe hachés avec bcryptjs
+- Tokens JWT pour l'authentification
+- Protection des routes API sensibles
