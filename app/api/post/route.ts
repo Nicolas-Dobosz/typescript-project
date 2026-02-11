@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
                 email: p.content,
                 picture: p.image,
                 creation_date: p.creationDate,
+                authorName: p.username,
             })),
         });
     } catch (error) {

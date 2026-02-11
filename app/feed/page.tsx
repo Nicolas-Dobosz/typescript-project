@@ -5,11 +5,12 @@ import {useRouter} from 'next/navigation';
 import {auth} from '@/app/lib/auth';
 import MyButton from '../components/Button';
 import PostCard from '../components/PostCard';
+import {Post, User} from "@/app/models";
 
 export default function Page() {
 	const router = useRouter();
-	const [users, setUsers] = useState<any[]>([]);
-	const [posts, setPosts] = useState<any[]>([]);
+	const [users, setUsers] = useState<User[]>([]);
+	const [posts, setPosts] = useState<Post[]>([]);
 
 
 	useEffect(() => {
@@ -45,6 +46,7 @@ export default function Page() {
 	}, [router]);
 
 
+
 	return (
 		<>
 			<ul>
@@ -56,10 +58,12 @@ export default function Page() {
 			{posts.map(post => (
 				<PostCard 
 					key={post.id}
-					author={post.authorName}
+					postId={post.id}
+					author={post.username}
 					title={post.content}
 					image={post.image || 'https://media.istockphoto.com/id/1500645450/fr/photo/image-floue-de-mouvement-de-la-circulation-sur-lautoroute.jpg?s=1024x1024&w=is&k=20&c=Kk2o63jL7LXfCs1MGT7NdeKldSQ-PXEAZYu0TJ_peH4='}
-					likes={12}
+					likes={post.likeCount}
+					isLiked={post.isLikedByUser}
 				/>
 			))}
 			</div>

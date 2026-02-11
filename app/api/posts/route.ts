@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 		return NextResponse.json({
 			posts: posts.map(p => ({
 				id: p.id,
-				authorName: p.authorName,
+				authorName: p.username,
 				content: p.content,
 				image: p.image,
 				picture: p.creationDate,
