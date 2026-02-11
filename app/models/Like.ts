@@ -14,7 +14,7 @@ export const LikeModel = {
 		);
 
 		const like = await dbGet<Like>('SELECT * FROM "like" WHERE id = ?', [result.lastID]);
-		if (!like) throw new Error('Erreur lors de la création du like');
+		if (!like) throw new Error('Error creating like');
 		return like;
 	},
 
@@ -26,20 +26,16 @@ export const LikeModel = {
 		return !!like;
 	},
 
-	async findByPostId(postId: number): Promise<Like[]> {
-		return await dbAll<Like>('SELECT * FROM "like" WHERE postId = ?', [postId]);
-	},
-
-	async findByUserId(userId: number): Promise<Like[]> {
-		return await dbAll<Like>('SELECT * FROM "like" WHERE userId = ?', [userId]);
-	},
-
 	async countByPostId(postId: number): Promise<number> {
 		const result = await dbGet<{ count: number }>(
 			'SELECT COUNT(*) as count FROM "like" WHERE postId = ?',
 			[postId]
 		);
 		return result?.count || 0;
+	},
+
+	async deleteForPost(postId: number): Promise<void> {
+		await dbRun('DELETE FROM "like" WHERE postId = ?', [postId]);
 	},
 
 	async delete(userId: number, postId: number): Promise<void> {

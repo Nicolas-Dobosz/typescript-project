@@ -1,13 +1,35 @@
+import {User} from "@/app/models";
+
 export const auth = {
-	getToken(): string | null {
-		if (typeof window === 'undefined') return null;
-		return localStorage.getItem('token');
+	getToken() {
+		console.log("Token actuel:", localStorage.getItem('token'));
+		const token = localStorage.getItem('token');
+
+		if (!token) {
+			this.logout()
+		}
+		else {
+			return token;
+		}
 	},
 
 	getUser(): any | null {
-		if (typeof window === 'undefined') return null;
 		const user = localStorage.getItem('user');
 		return user ? JSON.parse(user) : null;
+	},
+
+	getUserFromToken(token: string) {
+		try {
+			const payload = JSON.parse(atob(token.split('.')[1]));
+			return {
+				id: payload.id,
+				name: payload.name,
+				email: payload.email,
+			} as User;
+		} catch (e) {
+			console.error("Erreur lors de la décodification du token:", e);
+			return null;
+		}
 	},
 
 	isAuthenticated(): boolean {
