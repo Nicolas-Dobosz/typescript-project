@@ -7,10 +7,10 @@ export interface Follow {
 }
 
 export const FollowModel = {
-	async create(userId: number, followerId: number): Promise<Follow> {
+	async create(followedId: number, followerId: number): Promise<Follow> {
 		const result = await dbRun(
 			'INSERT INTO follow (userId, followerId) VALUES (?, ?)',
-			[userId, followerId]
+			[followedId, followerId]
 		);
 
 		const follow = await dbGet<Follow>('SELECT * FROM follow WHERE id = ?', [result.lastID]);
@@ -18,26 +18,26 @@ export const FollowModel = {
 		return follow;
 	},
 
-	async exists(userId: number, followerId: number): Promise<boolean> {
+	async exists(followedId: number, followerId: number): Promise<boolean> {
 		const follow = await dbGet<Follow>(
 			'SELECT * FROM follow WHERE userId = ? AND followerId = ?',
-			[userId, followerId]
+			[followedId, followerId]
 		);
 		return !!follow;
 	},
 
-	async getFollowers(userId: number): Promise<Follow[]> {
-		return await dbAll<Follow>('SELECT * FROM follow WHERE userId = ?', [userId]);
+	async getFollowers(followedId: number): Promise<Follow[]> {
+		return await dbAll<Follow>('SELECT * FROM follow WHERE userId = ?', [followedId]);
 	},
 
 	async getFollowing(followerId: number): Promise<Follow[]> {
 		return await dbAll<Follow>('SELECT * FROM follow WHERE followerId = ?', [followerId]);
 	},
 
-	async countFollowers(userId: number): Promise<number> {
+	async countFollowers(followedId: number): Promise<number> {
 		const result = await dbGet<{ count: number }>(
 			'SELECT COUNT(*) as count FROM follow WHERE userId = ?',
-			[userId]
+			[followedId]
 		);
 		return result?.count || 0;
 	},
@@ -50,8 +50,18 @@ export const FollowModel = {
 		return result?.count || 0;
 	},
 
-	async delete(userId: number, followerId: number): Promise<void> {
-		await dbRun('DELETE FROM follow WHERE userId = ? AND followerId = ?', [userId, followerId]);
+	async follow(followedId: number, followerId: number) {
+		if (await this.exists(followedId, followerId)) {
+			await this.delete(followedId, followerId);
+		}
+		else {
+			await this.create(followedId, followerId);
+		}
+		return await this.exists(followedId, followerId);
+	},
+
+	async delete(followedId: number, followerId: number): Promise<void> {
+		await dbRun('DELETE FROM follow WHERE userId = ? AND followerId = ?', [followedId, followerId]);
 	},
 };
 
