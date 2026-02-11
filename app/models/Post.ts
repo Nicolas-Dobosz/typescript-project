@@ -4,7 +4,7 @@ import {UserModel} from './User';
 
 export interface Post {
 	id: number;
-	userId: number;
+	username: User;
 	content: string;
 	image: string | null;
 	creationDate: string;

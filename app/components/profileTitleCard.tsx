@@ -3,12 +3,13 @@
 import {User} from "@/app/models";
 import {useEffect, useState} from "react";
 
-export default function ProfileTitleCard({user}: {user: User}) {
+export default function ProfileTitleCard({user}: {user: User | null}) {
 
 	const [followers, setFollowers] = useState<number>(0);
 
 	const fetchFollowers = async () => {
 		try {
+			if (!user) return;
 			const res = await fetch(`/api/followers/count/${user.id}`);
 			const data = await res.json();
 			setFollowers(data.count);
