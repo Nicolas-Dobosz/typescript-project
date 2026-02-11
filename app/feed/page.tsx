@@ -3,13 +3,13 @@
 import {useEffect, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {auth} from '@/app/lib/auth';
-import MyButton from '../components/Button';
 import PostCard from '../components/PostCard';
+import {Post, User} from "@/app/models";
 
 export default function Page() {
 	const router = useRouter();
-	const [users, setUsers] = useState<any[]>([]);
-	const [posts, setPosts] = useState<any[]>([]);
+	const [users, setUsers] = useState<User[]>([]);
+	const [posts, setPosts] = useState<Post[]>([]);
 
 
 	useEffect(() => {

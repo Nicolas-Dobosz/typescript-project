@@ -7,9 +7,9 @@ import {auth} from '@/app/lib/auth';
 
 export default function LoginPage() {
 	const router = useRouter();
-	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
-	const [error, setError] = useState('');
+	const [email, setEmail] = useState<string>('');
+	const [password, setPassword] = useState<string>('');
+	const [error, setError] = useState<string>('');
 
 	useEffect(() => {
 		if (auth.isAuthenticated()) {

@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import {initDB} from '@/app/lib/db';
 import {UserModel} from '@/app/models';
 import {generateToken} from '@/app/lib/jwt';
+import {PASSWORD_RULE_MESSAGE, validateEmail, validatePassword} from '@/app/lib/validations';
 
 export async function POST(request: NextRequest) {
 	try {
@@ -18,17 +19,18 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(email)) {
+		const emailValidation = validateEmail(email);
+		if (!emailValidation.valid) {
 			return NextResponse.json(
-				{error: 'Email invalide'},
+				{error: emailValidation.message || 'Email invalide'},
 				{status: 400}
 			);
 		}
 
-		if (password.length < 6) {
+		const passwordValidation = validatePassword(password);
+		if (!passwordValidation.valid) {
 			return NextResponse.json(
-				{error: 'Le mot de passe doit contenir au moins 6 caractères'},
+				{error: passwordValidation.message || PASSWORD_RULE_MESSAGE},
 				{status: 400}
 			);
 		}

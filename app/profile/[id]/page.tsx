@@ -5,13 +5,14 @@ import {useParams, useRouter} from 'next/navigation';
 import {auth} from '@/app/lib/auth';
 import ProfileTitleCard from "@/app/components/profileTitleCard";
 import ProfilePostList from "@/app/components/profilePostList";
+import {User} from "@/app/models";
 
 export default function UserProfilePage() {
 	const router = useRouter();
 	const params = useParams();
 	const userId = params.id;
-	const [user, setUser] = useState<any>(null);
-	const [loading, setLoading] = useState(true);
+	const [user, setUser] = useState<User | null>(null);
+	const [loading, setLoading] = useState<boolean>(true);
 
 	useEffect(() => {
 		if (!auth.isAuthenticated()) {
