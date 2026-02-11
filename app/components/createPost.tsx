@@ -2,14 +2,17 @@
 import React, { useState } from "react";
 import { auth } from "../lib/auth";
 
-export default function CreatPostModal() {
+interface CreatPostModalProps {
+  onClose: () => void;
+}
+
+export default function CreatPostModal({ onClose }: CreatPostModalProps) {
   const [content, setContent] = useState<string>("");
   const [url, setUrl] = useState<string>("");
   const [error, setError] = useState<string>("");
   const user: number = auth.getUser().id;
-
   const handleClose = () => {
-    console.log("COUCOU");
+    onClose();
   };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,7 +26,7 @@ export default function CreatPostModal() {
       const res = await fetch("/api/createPost", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user, content, url }),
+        body: JSON.stringify({ userId: user, content, url }),
       });
 
       const data = await res.json();
@@ -33,7 +36,7 @@ export default function CreatPostModal() {
         return;
       }
 
-      handleClose;
+      handleClose();
     } catch {
       setError("Erreur serveur");
     }
@@ -70,10 +73,12 @@ export default function CreatPostModal() {
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"
         >
-          Se connecter
+          Create
         </button>
-        <button onClick={handleClose}></button>
       </form>
+      <button type="button" onClick={handleClose}>
+        Close
+      </button>
     </div>
   );
 }
