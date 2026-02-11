@@ -1,6 +1,6 @@
-import {redirect} from 'next/navigation';
-import PostDetail from '@/app/components/postDetail';
-import Comment from '@/app/components/comment';
+import { redirect } from "next/navigation";
+import PostDetail from "@/app/components/postDetail";
+import Comment from "@/app/components/comment";
 
 export default async function Page({
     params,
@@ -17,7 +17,7 @@ export default async function Page({
     const postData = await res.json();
 
     if (!res.ok) {
-        redirect('/feed');
+        redirect("/feed");
     }
 
     return (
