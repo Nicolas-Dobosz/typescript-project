@@ -16,7 +16,7 @@ export const PostModel = {
 		);
 
 		const post = await dbGet<Post>('SELECT * FROM post WHERE id = ?', [result.lastID]);
-		if (!post) throw new Error('Erreur lors de la création du post');
+		if (!post) throw new Error('Error creating the post');
 		return post;
 	},
 

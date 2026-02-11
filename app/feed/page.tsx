@@ -1,12 +1,17 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {auth} from '@/app/lib/auth';
+import CreatPostModal from '../components/createPost';
 
 export default function Page() {
 	const router = useRouter();
 	const [users, setUsers] = useState<any[]>([]);
+	const [isModalOpen, setModalOpen] = useState<boolean>(false)
+
+	const displayModal = () => {setModalOpen(true)}
+	const closeModal = () => {setModalOpen(false)};
 
 	useEffect(() => {
 
@@ -28,10 +33,14 @@ export default function Page() {
 
 
 	return (
-		<ul>
-			{users.map(user => (
-				<li key={user.id}>{user.name}</li>
-			))}
-		</ul>
+		<>	
+			{isModalOpen && <CreatPostModal onClose={closeModal}/> }
+			<button onClick={displayModal}>New Post</button>
+			<ul>
+				{users.map(user => (
+					<li key={user.id}>{user.name}</li>
+				))}
+			</ul>
+		</>
 	);
 }
