@@ -29,12 +29,17 @@ export async function GET(request: NextRequest) {
 		return NextResponse.json({
 			posts: posts.map(p => ({
 				id: p.id,
+				userId: p.userId,
 				username: p.username,
 				content: p.content,
 				image: p.image,
+				creationDate: p.creationDate,
+				likeCount: Number(p.likeCount) || 0,
+				isLikedByUser: Boolean(p.isLikedByUser),
 				picture: p.creationDate,
 				likeCount: p.likeCount,
 				isLikedByUser: p.isLikedByUser,
+				isAuthorFollowed: p.isAuthorFollowed,
 			})),
 			hasMore: posts.length === limit,
 		});
