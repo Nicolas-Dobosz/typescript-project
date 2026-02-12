@@ -10,7 +10,7 @@ import {EnrichPost} from "@/app/models/Post";
 
 export default function Page() {
 	const router = useRouter();
-  const [isModalOpen, setModalOpen] = useState<boolean>(false)
+    const [isModalOpen, setModalOpen] = useState<boolean>(false)
 
 	const displayModal = () => {setModalOpen(true)}
 	const closeModal = () => {setModalOpen(false)};
@@ -32,9 +32,7 @@ export default function Page() {
 	const calculatePostPoints = (post: Post): number => {
 		const basePoints = 10;
 		const likePoints = post.likeCount * 2;
-		console.log(likePoints)
 		const ageInHours = (Date.now() - new Date(post.creationDate).getTime()) / (1000 * 60 * 60);
-		console.log(ageInHours)
 		const agePoints = Math.max(0, 20 - ageInHours);
 
 		return basePoints + likePoints + agePoints;
@@ -79,7 +77,7 @@ export default function Page() {
 
 	useEffect(() => {
 		if (filter === "for-you" || filter === "recent") {
-			fetch('/api/posts')
+			fetch('/api/posts', {headers: { 'Authorization': `Bearer ${auth.getToken()}` } })
 				.then(res => {
 					if (!res.ok) throw new Error('Réponse serveur non-JSON');
 					return res.json();

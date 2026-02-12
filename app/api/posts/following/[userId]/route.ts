@@ -2,11 +2,12 @@ import {NextRequest, NextResponse} from 'next/server';
 import {initDB} from '@/app/lib/db';
 import {PostModel} from '@/app/models';
 
-export async function GET(request: NextRequest, {params}: {params: Promise<{userId: number}>}) {
+export async function GET(request: NextRequest, {params}: {params: Promise<{userId: string}>}) {
 	try {
 		await initDB();
 
-		const {userId} = await params;
+		const {userId: userIdParam} = await params;
+		const userId = parseInt(userIdParam, 10);
 
 		const posts = await PostModel.findPostsFollowersByUserId(userId, userId);
 		return NextResponse.json({

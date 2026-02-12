@@ -8,6 +8,8 @@ export async function GET(request: NextRequest) {
 		await initDB();
 
 		const authHeader = request.headers.get('Authorization');
+
+		console.log(authHeader);
 		if (!authHeader || !authHeader.startsWith('Bearer ')) {
 			return NextResponse.json({error: 'Token manquant'}, {status: 401});
 		}
