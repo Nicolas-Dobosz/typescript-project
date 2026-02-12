@@ -4,7 +4,7 @@ import {Post, User} from "@/app/models";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
-export default function ProfilePostCard({post, user}: {post: Post; user: User}) {
+export default function ProfilePostCard({post, user, setReloading}: {post: Post; user: User, setReloading: (value: boolean) => void }) {
 	const [error, setError] = useState<string>("");
 	const params = useParams();
 	const userId = params.id; 
@@ -18,6 +18,7 @@ export default function ProfilePostCard({post, user}: {post: Post; user: User}) 
       	});
 
     	const data = await res.json();
+		setReloading(true)
 
 		if (!res.ok) {
 		setError(data.error);

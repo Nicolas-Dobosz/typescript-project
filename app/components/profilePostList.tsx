@@ -7,6 +7,7 @@ import {useEffect, useState} from "react";
 export default function ProfilePostList({user}: {user: User}) {
 
 	const [posts, setPosts] = useState<Post[]>([]);
+	const [reloading, setReloading] = useState<boolean>(false)
 
 	const fetchPosts = async () => {
 		try {
@@ -19,13 +20,16 @@ export default function ProfilePostList({user}: {user: User}) {
 	}
 
 	useEffect(() => {
+		if(reloading){
+			setReloading(false)
+		}
 		fetchPosts();
-	}, [user]);
+	}, [user, reloading]);
 
 	return (
 		<div className="flex flex-col gap-1 bg-white">
 			{posts.map((post) => (
-				<ProfilePostCard post={post} key={post.id} user={user} />
+				<ProfilePostCard post={post} key={post.id} user={user} setReloading={setReloading} />
 			))}
 		</div>
 	);

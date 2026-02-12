@@ -3,6 +3,7 @@ import {initDB} from '@/app/lib/db';
 import {PostModel} from '@/app/models';
 
 export async function POST(request: NextRequest) {
+
 	try {
 		await initDB();
 
