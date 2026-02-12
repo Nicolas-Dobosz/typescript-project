@@ -1,6 +1,6 @@
 'use client';
 
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {auth} from "@/app/lib/auth";
 import {useRouter} from "next/navigation";
 
@@ -15,6 +15,7 @@ interface PostCardProps {
     likes?: number;
     isLiked?: boolean;
     isAuthorFollowed?: boolean;
+    
 }
 
 export default function PostCard({
@@ -32,6 +33,11 @@ export default function PostCard({
     const [liked, setLiked] = useState(isLiked);
     const [followed, setFollowed] = useState(isAuthorFollowed);
     const router = useRouter();
+    
+    useEffect(()=> {
+        console.log('test')
+    },
+    [liked,followed])
     const handleLike = () => {
         fetch('/api/like/' + postId, {
             method: 'POST',
@@ -71,7 +77,6 @@ export default function PostCard({
             })
             .then(data => {
                 setFollowed(data.following);
-                router.refresh();
                 
             })
             .catch(error => {
