@@ -1,6 +1,6 @@
 'use client';
 
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {auth} from "@/app/lib/auth";
 import {useRouter} from "next/navigation";
 
@@ -15,6 +15,7 @@ interface PostCardProps {
     likes?: number;
     isLiked?: boolean;
     isAuthorFollowed?: boolean;
+    
 }
 
 export default function PostCard({
@@ -26,12 +27,17 @@ export default function PostCard({
     image = "/docs/images/blog/image-1.jpg",
     likes = 0,
     isLiked = false,
-                                     isAuthorFollowed
+    isAuthorFollowed = false,
 }: PostCardProps) {
     const [likesCount, setLikesCount] = useState(likes);
     const [liked, setLiked] = useState(isLiked);
     const [followed, setFollowed] = useState(isAuthorFollowed);
     const router = useRouter();
+    
+    useEffect(()=> {
+        console.log('test')
+    },
+    [liked,followed])
     const handleLike = () => {
         fetch('/api/like/' + postId, {
             method: 'POST',
@@ -53,6 +59,10 @@ export default function PostCard({
             });
     }
 
+    const handleImageError = (e) => {
+        e.target.src = 'https://media.istockphoto.com/id/1500645450/fr/photo/image-floue-de-mouvement-de-la-circulation-sur-lautoroute.jpg?s=1024x1024&w=is&k=20&c=Kk2o63jL7LXfCs1MGT7NdeKldSQ-PXEAZYu0TJ_peH4=';
+      };
+
     const handleFollow = () => {
         fetch('/api/follow/' + authorId, {
             method: 'POST',
@@ -67,7 +77,7 @@ export default function PostCard({
             })
             .then(data => {
                 setFollowed(data.following);
-                router.refresh();
+                
             })
             .catch(error => {
                 console.error("Erreur de fetch :", error);
@@ -97,10 +107,11 @@ export default function PostCard({
             </div>
 
             <div className="relative aspect-square bg-gray-100">
-                <img
-                    className="w-full h-full object-cover"
-                    src={image}
-                    alt="Post content"
+                <img 
+                    className="w-full h-full object-cover" 
+                    src={image} 
+                    onError={handleImageError}
+                    alt="Post content" 
                 />
             </div>
 

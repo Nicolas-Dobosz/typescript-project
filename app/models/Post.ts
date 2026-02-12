@@ -47,13 +47,36 @@ export const PostModel = {
 		return this.enrichPost(post, currentUserId);
 	},
 
-	async findAll(currentUserId?: number): Promise<EnrichPost[]> {
-		const posts = await dbAll<Post>('SELECT * FROM post', []);
+	async findAll(currentUserId?: number, limit: number=10, offset: number=0): Promise<Post[]> {
+		const posts = await dbAll<Post>('SELECT * FROM post ORDER BY post.creationDate DESC LIMIT ? OFFSET ?', 
+			[limit, offset]
+		);
 		return Promise.all(posts.map(post => this.enrichPost(post, currentUserId)));
 	},
 
 	async findByUserId(userId: number, currentUserId?: number): Promise<EnrichPost[]> {
 		const posts = await dbAll<Post>('SELECT * FROM post WHERE userId = ?', [userId]);
+		return Promise.all(posts.map(post => this.enrichPost(post, currentUserId)));
+	},
+
+	async findPostsFollowersByUserId(userId: number, currentUserId?: number): Promise<Post[]> {
+		console.log("===== DEBUG findPostsFollowersByUserId =====");
+		console.log("userId (followerId):", userId, "type:", typeof userId);
+		console.log("currentUserId:", currentUserId);
+
+		const query = `SELECT post.* FROM post 
+			INNER JOIN follow ON post.userId = follow.userId 
+			WHERE follow.followerId = ?
+			ORDER BY post.creationDate DESC`;
+
+		console.log("SQL Query:", query);
+		console.log("Paramètres:", [userId]);
+
+		const posts = await dbAll<Post>(query, [userId]);
+
+		console.log("Posts bruts de la requête SQL:", posts);
+		console.log("Nombre de posts bruts:", posts.length);
+
 		return Promise.all(posts.map(post => this.enrichPost(post, currentUserId)));
 	},
 
@@ -78,5 +101,32 @@ export const PostModel = {
 		await dbRun('DELETE FROM post WHERE id = ?', [id]);
 		await LikeModel.deleteForPost(id);
 	},
+
+	async findPostDetailById(id: number): Promise<any> {
+        // 1. On récupère le post et l'auteur
+        const postWithAuthor = await dbGet<any>(`
+            SELECT p.*, u.name as authorName, u.picture as authorPicture
+            FROM post p
+            JOIN user u ON p.userId = u.id
+            WHERE p.id = ?
+        `, [id]);
+
+        if (!postWithAuthor) return null;
+
+        // 2. On récupère les commentaires liés avec le prénom (name) de chaque commentateur
+        const comments = await dbAll<any>(`
+            SELECT c.*, u.name as commenterName
+            FROM comment c
+            JOIN user u ON c.userId = u.id
+            WHERE c.postId = ?
+            ORDER BY c.creationDate ASC
+        `, [id]);
+
+        // 3. On fusionne le tout dans un seul objet
+        return {
+            ...postWithAuthor,
+            comments: comments
+        };
+    },
 };
 
