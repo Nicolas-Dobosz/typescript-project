@@ -84,16 +84,26 @@ export default function PostCard({
             });
     }
     return (
-        <div className="max-w-md bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-8">
+
+        <div
+            className="max-w-md bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-8 cursor-pointer"
+            onClick={() => router.push(`/post/${postId}`)}
+        >
             <div className="flex items-center gap-3 p-3">
                 <img
                     src={iconUser}
                     alt={author}
                     className="h-10 w-10 rounded-full object-cover border border-gray-100"
                 />
-                <span className="font-bold text-sm text-gray-900 hover:underline cursor-pointer">
+                <a
+                    className="font-bold text-sm text-gray-900 hover:underline cursor-pointer"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/profile/${authorId}`);
+                    }}
+                >
                     {author}
-                </span>
+                </a>
                 { authorId == auth.getUser().id ? (
                 <button
                     className={`transition-all duration-200 px-3 py-1 rounded-lg font-semibold text-xs ml-auto ${
@@ -101,7 +111,10 @@ export default function PostCard({
                             ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             : 'bg-blue-500 text-white hover:bg-blue-600 active:scale-95'
                     }`}
-                    onClick={() => handleFollow()}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleFollow();
+                    }}
                 >
                     {followed ? 'Suivi' : 'Suivre'}
                 </button>
@@ -113,17 +126,20 @@ export default function PostCard({
             </div>
 
             <div className="relative aspect-square bg-gray-100">
-                <img 
-                    className="w-full h-full object-cover" 
-                    src={image} 
+                <img
+                    className="w-full h-full object-cover"
+                    src={image}
                     onError={handleImageError}
-                    alt="Post content" 
+                    alt="Post content"
                 />
             </div>
 
             <div className="px-4 pt-3 pb-1 flex space-x-4">
                 <button
-                    onClick={() => handleLike()}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleLike();
+                    }}
                     className={`transition-colors ${liked ? 'text-red-500' : 'text-gray-700 hover:text-gray-400'}`}
                 >
                     <svg className="w-7 h-7" fill={liked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
