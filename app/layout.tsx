@@ -31,7 +31,7 @@ export default function RootLayout({
         <div className="flex flex-row w-screen h-screen">
             <NavBar />
 
-            <div className="w-[95vw]">
+            <div className="ml-[5vw] w-[95vw]">
                 {children}
             </div>
         </div>

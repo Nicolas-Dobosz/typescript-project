@@ -7,7 +7,7 @@ export default function NavBar() {
 	const router = useRouter();
 
 	return (
-		<div className="w-[5vw] bg-black h-screen flex flex-col items-center py-4 justify-between py-[10vh]">
+		<div className="fixed top-0 w-[5vw] bg-black h-screen flex flex-col items-center py-4 justify-between py-[10vh]">
 			<button
 				className="flex flex-col hover:bg-white/10 focus:outline-none transition-all rounded-xl w-[4vw] h-[4vw] items-center justify-center"
 				onClick={() => router.push("/")}
