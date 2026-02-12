@@ -1,65 +1,168 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {useRouter} from 'next/navigation';
+import {auth} from '@/app/lib/auth';
+import CreatPostModal from './components/createPost';
+import MyButton from './components/Button';
+import PostCard from './components/PostCard';
+import {User} from "@/app/models";
+import {EnrichPost} from "@/app/models/Post";
+
+export default function Page() {
+    const router = useRouter();
+    
+    const [isModalOpen, setModalOpen] = useState<boolean>(false);
+    const [filter, setFilter] = useState<'following' | 'for-you' | 'recent'>('for-you');
+
+    const [users, setUsers] = useState<User[]>([]);
+    const [posts, setPosts] = useState<EnrichPost[]>([]);
+
+    const [page, setPage] = useState<number>(1);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [hasMore, setHasMore] = useState<boolean>(true);
+    const[refreshing, setRefreshing] = useState<boolean>(false);
+    const isFetching = useRef(false);
+
+    const displayModal = () => setModalOpen(true);
+    const closeModal = () => {
+        setModalOpen(false);
+        setRefreshing(true);
+      };
+    
+    const calculatePostPoints = (post: EnrichPost): number => {
+        const basePoints = 10;
+        const likePoints = (post.likeCount || 0) * 2;
+        const ageInHours = (Date.now() - new Date(post.creationDate).getTime()) / (1000 * 60 * 60);
+        const agePoints = Math.max(0, 20 - ageInHours);
+        return basePoints + likePoints + agePoints;
+    };
+
+    const fetchPosts = useCallback(async (pageNum: number, currentFilter: string) => {
+        if (isFetching.current) return;
+        
+        isFetching.current = true;
+        setLoading(true);
+		setRefreshing(false);
+
+        try {
+            let url = `/api/posts?page=${pageNum}`;
+            if (currentFilter === 'following') {
+                url = `/api/posts/following/${auth.getUser()?.id}?page=${pageNum}`;
+            }
+
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${auth.getToken()}` }
+            });
+
+            if (!res.ok) throw new Error('Erreur serveur');
+            
+            const data = await res.json();
+            const newPosts = data.posts || [];
+
+            setPosts(prev => pageNum === 1 ? newPosts : [...prev, ...newPosts]);
+            setHasMore(newPosts.length === 10);
+        } catch (error) {
+            console.error("Erreur de fetch :", error);
+        } finally {
+            setLoading(false);
+            isFetching.current = false;
+        }
+    }, [refreshing]);
+
+    useEffect(() => {
+        if (!auth.isAuthenticated()) {
+            router.push('/login');
+            return;
+        }
+
+        setPage(1);
+        fetchPosts(1, filter);
+
+        fetch('/api/users')
+            .then(res => res.json())
+            .then(data => setUsers(data.users || []))
+            .catch(err => console.error(err));
+            
+    }, [filter, router, fetchPosts]);
+
+    const handleLoadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchPosts(nextPage, filter);
+    };
+
+    const renderFilterBtn = (id: typeof filter, label: string) => (
+        <button
+            onClick={() => setFilter(id)}
+            className={`transition-all rounded-lg px-4 py-2 text-sm font-medium ${
+                filter === id 
+                    ? 'bg-white text-indigo-900 border-2 border-indigo-500 shadow-sm' 
+                    : 'bg-indigo-500 hover:bg-indigo-600 text-white'
+            }`}
+        >
+            {label}
+        </button>
+    );
+
+    return (
+        <div className="min-h-screen bg-gray-50">  
+            {isModalOpen && <CreatPostModal onClose={closeModal} />}
+            
+            <div className="p-6 flex flex-col items-center gap-6">
+                <MyButton onClick={displayModal} label="New Post" />
+
+                <div className="flex flex-row items-center w-full max-w-md justify-center gap-4">
+                    {renderFilterBtn('following', 'Suivis')}
+                    {renderFilterBtn('for-you', 'Pour toi')}
+                    {renderFilterBtn('recent', 'Récents')}
+                </div>
+
+                <div className="flex flex-col justify-center items-center gap-6 w-full pb-10">
+                    {posts
+                        .sort((a, b) => {
+                            if (filter === 'recent') {
+                                return new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime();
+                            }
+                            return calculatePostPoints(b) - calculatePostPoints(a);
+                        })
+                        .map((post, index) => (
+                            <div key={`${post.id}-${index}`} className="w-full flex flex-col items-center">
+                                {filter !== 'recent' && (
+                                    <span className="text-xs font-bold text-indigo-400 mb-1">
+                                        {Math.round(calculatePostPoints(post))} points
+                                    </span>
+                                )}
+                                <PostCard 
+                                    postId={post.id}
+                                    authorId={post.userId}
+                                    author={post.username}
+                                    title={post.content}
+                                    image={post.iconUser || 'https://media.istockphoto.com/id/1500645450/...'}
+                                    likes={post.likeCount}
+                                    isLiked={post.isLikedByUser}
+                                    isAuthorFollowed={post.isAuthorFollowed}                                    
+                                />
+                            </div>
+                        ))}
+
+                    {hasMore && (
+                        <button
+                            onClick={handleLoadMore}
+                            disabled={loading}
+                            className={`mt-4 px-8 py-3 rounded-full font-semibold transition ${
+                                loading ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
+                        >
+                            {loading ? 'Chargement...' : 'Afficher plus'}
+                        </button>
+                    )}
+
+                    {!hasMore && posts.length > 0 && (
+                        <p className="text-gray-400 text-sm italic">Fin du flux</p>
+                    )}
+                </div>
+            </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    );
 }
