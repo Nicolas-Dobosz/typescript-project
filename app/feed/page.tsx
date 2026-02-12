@@ -1,187 +1,162 @@
 'use client';
 
-import {useEffect, useState} from 'react';
-import {useRouter} from 'next/navigation';
-import {auth} from '@/app/lib/auth';
+import { useEffect, useCallback, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { auth } from '@/app/lib/auth';
 import CreatPostModal from '../components/createPost';
+import MyButton from '../components/Button';
 import PostCard from '../components/PostCard';
-import {Post, User} from "@/app/models";
-import {EnrichPost} from "@/app/models/Post";
+import { Post, User } from "@/app/models";
+import { EnrichPost } from "@/app/models/Post";
 
 export default function Page() {
-	const router = useRouter();
-    const [isModalOpen, setModalOpen] = useState<boolean>(false)
+    const router = useRouter();
+    
+    const [isModalOpen, setModalOpen] = useState<boolean>(false);
+    const [filter, setFilter] = useState<'following' | 'for-you' | 'recent'>('for-you');
 
-	const displayModal = () => {setModalOpen(true)}
-	const closeModal = () => {setModalOpen(false)};
-	const [users, setUsers] = useState<User[]>([]);
-	const [posts, setPosts] = useState<EnrichPost[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
+    const [posts, setPosts] = useState<EnrichPost[]>([]);
 
-	const [filter, setFilter] = useState<'following' | 'for-you' | 'recent'>('for-you');
+    const [page, setPage] = useState<number>(1);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [hasMore, setHasMore] = useState<boolean>(true);
+    const isFetching = useRef(false);
 
-	const onClickForYou = () => {
-		setFilter('for-you');
-	}
-	const onClickFollows = () => {
-		setFilter('following');
-	}
-	const onClickRecent = () => {
-		setFilter('recent');
-	}
+    const displayModal = () => setModalOpen(true);
+    const closeModal = () => setModalOpen(false);
 
-	const calculatePostPoints = (post: Post): number => {
-		const basePoints = 10;
-		const likePoints = post.likeCount * 2;
-		const ageInHours = (Date.now() - new Date(post.creationDate).getTime()) / (1000 * 60 * 60);
-		const agePoints = Math.max(0, 20 - ageInHours);
+    const calculatePostPoints = (post: EnrichPost): number => {
+        const basePoints = 10;
+        const likePoints = (post.likeCount || 0) * 2;
+        const ageInHours = (Date.now() - new Date(post.creationDate).getTime()) / (1000 * 60 * 60);
+        const agePoints = Math.max(0, 20 - ageInHours);
+        return basePoints + likePoints + agePoints;
+    };
 
-		return basePoints + likePoints + agePoints;
-	}
+    const fetchPosts = useCallback(async (pageNum: number, currentFilter: string) => {
+        if (isFetching.current) return;
+        
+        isFetching.current = true;
+        setLoading(true);
 
+        try {
+            let url = `/api/posts?page=${pageNum}`;
+            if (currentFilter === 'following') {
+                url = `/api/posts/following/${auth.getUser()?.id}?page=${pageNum}`;
+            }
 
-	useEffect(() => {
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${auth.getToken()}` }
+            });
 
-		if (!auth.isAuthenticated()) {
-			router.push('/login');
-			return;
-		}
+            if (!res.ok) throw new Error('Erreur serveur');
+            
+            const data = await res.json();
+            const newPosts = data.posts || [];
 
-		fetch('/api/posts', {
-			headers: {
-				'Authorization': `Bearer ${auth.getToken()}`
-			}
-		})
-			.then(res => {
-				if (!res.ok) throw new Error('Réponse serveur non-JSON');
-				return res.json();
-			})
-			.then(data => {
-				setPosts(data.posts || []);
-			})
-			.catch(error => {
-				console.error("Erreur de fetch :", error);
-			});
+            setPosts(prev => pageNum === 1 ? newPosts : [...prev, ...newPosts]);
+            setHasMore(newPosts.length === 10);
+        } catch (error) {
+            console.error("Erreur de fetch :", error);
+        } finally {
+            setLoading(false);
+            isFetching.current = false;
+        }
+    }, []);
 
+    useEffect(() => {
+        if (!auth.isAuthenticated()) {
+            router.push('/login');
+            return;
+        }
 
+        setPage(1);
+        fetchPosts(1, filter);
 
-		fetch('/api/users')
-			.then(res => res.json())
-			.then(data => {
-				setUsers(data.users || []);
-				console.log(data.users);
-			})
-			.catch(error => {
-				console.error(error);
-			});
-		}, [router]);
+        fetch('/api/users')
+            .then(res => res.json())
+            .then(data => setUsers(data.users || []))
+            .catch(err => console.error(err));
+            
+    }, [filter, router, fetchPosts]);
 
-	useEffect(() => {
-		if (filter === "for-you" || filter === "recent") {
-			fetch('/api/posts', {headers: { 'Authorization': `Bearer ${auth.getToken()}` } })
-				.then(res => {
-					if (!res.ok) throw new Error('Réponse serveur non-JSON');
-					return res.json();
-				})
-				.then(data => {
-					setPosts(data.posts || []);
-				})
-				.catch(error => {
-					console.error("Erreur de fetch :", error);
-				});
-		}
+    const handleLoadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchPosts(nextPage, filter);
+    };
 
-		if (filter === "following") {
-			console.log('/api/posts/following/'+auth.getUser().id)
-			fetch('/api/posts/following/'+auth.getUser().id)
-				.then(res => {
-					if (!res.ok) throw new Error('Réponse serveur non-JSON');
-					return res.json();
-				})
-				.then(data => {
-					setPosts(data.posts || []);
-				})
-				.catch(error => {
-					console.error("Erreur de fetch :", error);
-				});
+    const renderFilterBtn = (id: typeof filter, label: string) => (
+        <button
+            onClick={() => setFilter(id)}
+            className={`transition-all rounded-lg px-4 py-2 text-sm font-medium ${
+                filter === id 
+                    ? 'bg-white text-indigo-900 border-2 border-indigo-500 shadow-sm' 
+                    : 'bg-indigo-500 hover:bg-indigo-600 text-white'
+            }`}
+        >
+            {label}
+        </button>
+    );
 
-			console.log("ok")
-		}
+    return (
+        <div className="min-h-screen bg-gray-50">  
+            {isModalOpen && <CreatPostModal onClose={closeModal} />}
+            
+            <div className="p-6 flex flex-col items-center gap-6">
+                <MyButton onClick={displayModal} label="New Post" />
 
+                {/* Barre de Filtres */}
+                <div className="flex flex-row items-center w-full max-w-md justify-center gap-4">
+                    {renderFilterBtn('following', 'Suivis')}
+                    {renderFilterBtn('for-you', 'Pour toi')}
+                    {renderFilterBtn('recent', 'Récents')}
+                </div>
 
-	}, [filter]);
+                <div className="flex flex-col justify-center items-center gap-6 w-full pb-10">
+                    {posts
+                        .sort((a, b) => {
+                            if (filter === 'recent') {
+                                return new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime();
+                            }
+                            return calculatePostPoints(b) - calculatePostPoints(a);
+                        })
+                        .map((post, index) => (
+                            <div key={`${post.id}-${index}`} className="w-full flex flex-col items-center">
+                                {filter !== 'recent' && (
+                                    <span className="text-xs font-bold text-indigo-400 mb-1">
+                                        {Math.round(calculatePostPoints(post))} points
+                                    </span>
+                                )}
+                                <PostCard 
+                                    postId={post.id}
+                                    author={post.username}
+                                    title={post.content}
+                                    image={post.image || 'https://media.istockphoto.com/id/1500645450/...'}
+                                    likes={post.likeCount}
+                                    isLiked={post.isLikedByUser}
+                                />
+                            </div>
+                        ))}
 
+                    {hasMore && (
+                        <button
+                            onClick={handleLoadMore}
+                            disabled={loading}
+                            className={`mt-4 px-8 py-3 rounded-full font-semibold transition ${
+                                loading ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
+                        >
+                            {loading ? 'Chargement...' : 'Afficher plus'}
+                        </button>
+                    )}
 
-
-	return (
-		<>	
-			{isModalOpen && <CreatPostModal onClose={closeModal}/> }
-			<button onClick={displayModal}>New Post</button>
-			<ul>
-				{users.map(user => (
-					<li key={user.id}>{user.name}</li>
-				))}
-			</ul>
-			<div className="flex flex-col justify-center items-center gap-6">
-				<div className="flex flex-row items-center w-full max-w-2xl gap-[1vw]">
-					<button
-						onClick={onClickFollows}
-						className={`transition-all rounded-lg px-[1vw] py-[1vh] ${
-							filter === 'following' 
-								? 'bg-white text-indigo-900 border-2 border-indigo-500' 
-								: 'bg-indigo-500 hover:bg-indigo-900 text-white'
-						}`}
-					>
-						Suivis
-					</button>
-					<button
-						onClick={onClickForYou}
-						className={`transition-all rounded-lg px-[1vw] py-[1vh] ${
-							filter === 'for-you' 
-								? 'bg-white text-indigo-900 border-2 border-indigo-500' 
-								: 'bg-indigo-500 hover:bg-indigo-900 text-white'
-						}`}
-					>
-						Pour toi
-					</button>
-					<button
-						onClick={onClickRecent}
-						className={`transition-all rounded-lg px-[1vw] py-[1vh] ${
-							filter === 'recent'
-								? 'bg-white text-indigo-900 border-2 border-indigo-500'
-								: 'bg-indigo-500 hover:bg-indigo-900 text-white'
-						}`}
-					>
-						Récents
-					</button>
-				</div>
-			{posts
-				.sort((a, b) => {
-					if (filter === 'recent') {
-						return new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime();
-					}
-					else {
-						return calculatePostPoints(b) - calculatePostPoints(a);
-					}
-				})
-				.map(post => (
-					<div key={post.id}>
-						{filter !== 'recent' && (
-							<p className="text-purple-500">{calculatePostPoints(post)} points</p>
-						)}
-						<PostCard
-							postId={post.id}
-							author={post.username}
-              authorId={post.userId}
-							title={post.content}
-							image={post.image || 'https://media.istockphoto.com/id/1500645450/fr/photo/image-floue-de-mouvement-de-la-circulation-sur-lautoroute.jpg?s=1024x1024&w=is&k=20&c=Kk2o63jL7LXfCs1MGT7NdeKldSQ-PXEAZYu0TJ_peH4='}
-							likes={post.likeCount}
-							isLiked={post.isLikedByUser}
-              isAuthorFollowed={post.isAuthorFollowed}
-						/>
-					</div>
-				))}
-			</div>
-		</>
-	);
-	
+                    {!hasMore && posts.length > 0 && (
+                        <p className="text-gray-400 text-sm italic">Fin du flux</p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
 }

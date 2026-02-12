@@ -53,6 +53,10 @@ export default function PostCard({
             });
     }
 
+    const handleImageError = (e) => {
+        e.target.src = 'https://media.istockphoto.com/id/1500645450/fr/photo/image-floue-de-mouvement-de-la-circulation-sur-lautoroute.jpg?s=1024x1024&w=is&k=20&c=Kk2o63jL7LXfCs1MGT7NdeKldSQ-PXEAZYu0TJ_peH4=';
+      };
+
     const handleFollow = () => {
         fetch('/api/follow/' + authorId, {
             method: 'POST',
@@ -97,10 +101,11 @@ export default function PostCard({
             </div>
 
             <div className="relative aspect-square bg-gray-100">
-                <img
-                    className="w-full h-full object-cover"
-                    src={image}
-                    alt="Post content"
+                <img 
+                    className="w-full h-full object-cover" 
+                    src={image} 
+                    onError={handleImageError}
+                    alt="Post content" 
                 />
             </div>
 
