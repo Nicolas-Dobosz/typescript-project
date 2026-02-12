@@ -1,4 +1,4 @@
-# SocialMediaSlop
+# typescript-project
 
 Une application de réseau social moderne construite avec **Next.js**, **TypeScript**, **SQLite** et **Tailwind CSS**.
 
