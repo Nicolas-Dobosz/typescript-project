@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -21,11 +21,15 @@ export default function Page() {
     const [page, setPage] = useState<number>(1);
     const [loading, setLoading] = useState<boolean>(false);
     const [hasMore, setHasMore] = useState<boolean>(true);
+    const[refreshing, setRefreshing] = useState<boolean>(false);
     const isFetching = useRef(false);
 
     const displayModal = () => setModalOpen(true);
-    const closeModal = () => setModalOpen(false);
-
+    const closeModal = () => {
+        setModalOpen(false);
+        setRefreshing(true);
+      };
+    
     const calculatePostPoints = (post: EnrichPost): number => {
         const basePoints = 10;
         const likePoints = (post.likeCount || 0) * 2;
