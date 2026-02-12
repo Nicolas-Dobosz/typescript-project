@@ -1,28 +1,38 @@
-"use client";
+'use client';
 
-import {useRouter} from "next/navigation";
-import {CircleUserRoundIcon, LucideHome} from "lucide-react";
+import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Home, User } from 'lucide-react';
 
-export default function NavBar() {
-	const router = useRouter();
+export default function SidebarNotch() {
+  const pathname = usePathname();
 
-	return (
-		<div className="fixed top-0 w-[5vw] bg-black h-screen flex flex-col items-center py-4 justify-between py-[10vh]">
-			<button
-				className="flex flex-col hover:bg-white/10 focus:outline-none transition-all rounded-xl w-[4vw] h-[4vw] items-center justify-center"
-				onClick={() => router.push("/")}
-			>
-				<LucideHome size={24} color="white" />
-				<p className="text-white">Feed</p>
-			</button>
+  const links = [
+    { href: '/', icon: <Home size={24} />, active: pathname === '/' },
+    { href: '/profile/me', icon: <User size={24} />, active: pathname === '/profile/me' },
+  ];
 
-			<button
-				className="flex flex-col hover:bg-white/10 focus:outline-none transition-all rounded-xl w-[4vw] h-[4vw] items-center justify-center"
-				onClick={() => router.push("/profile/me")}
-			>
-				<CircleUserRoundIcon size={24} color="white" />
-				<p className="text-white">Profil</p>
-			</button>
-		</div>
-	);
+  return (
+    <nav className="fixed left-2 top-1/2 -translate-y-1/2 z-50">
+      {/* L'encoche collée au bord gauche */}
+      <div className="flex flex-col gap-2 bg-gray-900/90 backdrop-blur-md border-y border-r border-white/10 p-2 rounded-2xl shadow-xl">
+        {links.map((link) => (
+          <Link key={link.href} href={link.href}>
+            <button
+              className={`
+                w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200
+                ${link.active 
+                  ? 'bg-white text-black scale-105 shadow-lg' 
+                  : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }
+              `}
+            >
+              {link.icon}
+            </button>
+          </Link>
+        ))}
+      </div>
+    </nav>
+  );
 }
