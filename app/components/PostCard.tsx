@@ -26,7 +26,7 @@ export default function PostCard({
     image = "/docs/images/blog/image-1.jpg",
     likes = 0,
     isLiked = false,
-                                     isAuthorFollowed
+    isAuthorFollowed
 }: PostCardProps) {
     const [likesCount, setLikesCount] = useState(likes);
     const [liked, setLiked] = useState(isLiked);

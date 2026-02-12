@@ -131,6 +131,7 @@ export default function Page() {
                                 )}
                                 <PostCard 
                                     postId={post.id}
+                                    authorId={post.userId}
                                     author={post.username}
                                     title={post.content}
                                     image={post.image || 'https://media.istockphoto.com/id/1500645450/...'}
