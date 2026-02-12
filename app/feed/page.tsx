@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useCallback, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { auth } from '@/app/lib/auth';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {useRouter} from 'next/navigation';
+import {auth} from '@/app/lib/auth';
 import CreatPostModal from '../components/createPost';
 import MyButton from '../components/Button';
 import PostCard from '../components/PostCard';
-import { Post, User } from "@/app/models";
-import { EnrichPost } from "@/app/models/Post";
+import {User} from "@/app/models";
+import {EnrichPost} from "@/app/models/Post";
 
 export default function Page() {
     const router = useRouter();
@@ -112,7 +112,6 @@ export default function Page() {
             <div className="p-6 flex flex-col items-center gap-6">
                 <MyButton onClick={displayModal} label="New Post" />
 
-                {/* Barre de Filtres */}
                 <div className="flex flex-row items-center w-full max-w-md justify-center gap-4">
                     {renderFilterBtn('following', 'Suivis')}
                     {renderFilterBtn('for-you', 'Pour toi')}

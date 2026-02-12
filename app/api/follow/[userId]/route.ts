@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {initDB} from '@/app/lib/db';
-import {FollowModel, UserModel} from '@/app/models';
+import {FollowModel} from '@/app/models';
 import {verifyToken} from "@/app/lib/jwt";
 
 export async function POST(
@@ -26,6 +26,11 @@ export async function POST(
         
         if (isNaN(numericUserId)) {
             return NextResponse.json({error: 'ID de user invalide'}, {status: 400});
+        }
+
+        // block auto-follow
+        if (payload.userId === numericUserId) {
+            return NextResponse.json({error: 'Vous ne pouvez pas vous suivre vous-même'}, {status: 400});
         }
 
         console.log(`User ${payload.userId} is trying to follow user ${numericUserId}`);

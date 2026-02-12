@@ -94,6 +94,7 @@ export default function PostCard({
                 <span className="font-bold text-sm text-gray-900 hover:underline cursor-pointer">
                     {author}
                 </span>
+                { authorId == auth.getUser().id ? (
                 <button
                     className={`transition-all duration-200 px-3 py-1 rounded-lg font-semibold text-xs ml-auto ${
                         followed
@@ -104,6 +105,11 @@ export default function PostCard({
                 >
                     {followed ? 'Suivi' : 'Suivre'}
                 </button>
+                ) :
+                    <div className="transition-all duration-200 px-3 py-1 rounded-lg font-semibold text-xs ml-auto bg-red-500 text-white hover:bg-red-600 active:scale-95">
+                        <p>Vous</p>
+                    </div>
+                }
             </div>
 
             <div className="relative aspect-square bg-gray-100">
