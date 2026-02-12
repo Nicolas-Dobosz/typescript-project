@@ -9,14 +9,13 @@ export async function POST(request: NextRequest) {
         const { userId, postId, content } = body;
 
         if (!content) {
-            return NextResponse.json({ error: 'Le contenu est requis' }, { status: 400 });
+            return NextResponse.json({ error: 'Need content' }, { status: 400 });
         }
 
         const newComment = await CommentModel.create({ userId, postId, content });
         
         return NextResponse.json(newComment, { status: 200 });
     } catch (error) {
-        console.error('Erreur:', error);
-        return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+        return NextResponse.json({ error: 'Serveur error' }, { status: 500 });
     }
 }

@@ -12,12 +12,10 @@ export async function GET(
         const { id } = await params;
         const numericId = parseInt(id, 10)
 
-        console.log("Recherche en BDD pour ID:", numericId);
-
         const postDetail = await PostModel.findPostDetailById(numericId);
 
         if (!postDetail) {
-            return NextResponse.json({ error: 'Post non trouvé' }, { status: 404 });
+            return NextResponse.json({ error: 'Post not found' }, { status: 404 });
         }
 
         return NextResponse.json({
@@ -35,7 +33,6 @@ export async function GET(
         });
 
     } catch (error) {
-        console.error("Erreur API PostDetail:", error);
-        return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+        return NextResponse.json({ error }, { status: 500 });
     }
 }
