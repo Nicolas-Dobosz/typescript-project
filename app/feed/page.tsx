@@ -1,85 +1,169 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { auth } from "@/app/lib/auth";
-import CreatPostModal from "../components/createPost";
-import MyButton from "../components/Button";
-import PostCard from "../components/PostCard";
+import { useEffect, useCallback, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { auth } from '@/app/lib/auth';
+import CreatPostModal from '../components/createPost';
+import MyButton from '../components/Button';
+import PostCard from '../components/PostCard';
 import { Post, User } from "@/app/models";
+import { EnrichPost } from "@/app/models/Post";
 
 export default function Page() {
-  const router = useRouter();
-  const [isModalOpen, setModalOpen] = useState<boolean>(false);
+    const router = useRouter();
+    
+    const [isModalOpen, setModalOpen] = useState<boolean>(false);
+    const [filter, setFilter] = useState<'following' | 'for-you' | 'recent'>('for-you');
 
-  const displayModal = () => {
-    setModalOpen(true);
-  };
-  const [users, setUsers] = useState<User[]>([]);
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
+    const [users, setUsers] = useState<User[]>([]);
+    const [posts, setPosts] = useState<EnrichPost[]>([]);
 
-  const closeModal = () => {
-    setModalOpen(false);
-    setRefreshing(true);
-  };
+    const [page, setPage] = useState<number>(1);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [hasMore, setHasMore] = useState<boolean>(true);
+    const[refreshing, setRefreshing] = useState<boolean>(false);
+    const isFetching = useRef(false);
 
-  useEffect(() => {
-    setRefreshing(false);
+    const displayModal = () => setModalOpen(true);
+    const closeModal = () => {
+        setModalOpen(false);
+        setRefreshing(true);
+      };
+    
+    const calculatePostPoints = (post: EnrichPost): number => {
+        const basePoints = 10;
+        const likePoints = (post.likeCount || 0) * 2;
+        const ageInHours = (Date.now() - new Date(post.creationDate).getTime()) / (1000 * 60 * 60);
+        const agePoints = Math.max(0, 20 - ageInHours);
+        return basePoints + likePoints + agePoints;
+    };
 
-    if (!auth.isAuthenticated()) {
-      router.push("/login");
-      return;
-    }
+    const fetchPosts = useCallback(async (pageNum: number, currentFilter: string) => {
+        if (isFetching.current) return;
+        
+        isFetching.current = true;
+        setLoading(true);
 
-    fetch("/api/posts")
-      .then((res) => {
-        if (!res.ok) throw new Error("Réponse serveur non-JSON");
-        return res.json();
-      })
-      .then((data) => {
-        setPosts(data.posts || []);
-      })
-      .catch((error) => {
-        console.error("Erreur de fetch :", error);
-      });
-
-    fetch("/api/users")
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data.users || []);
-        console.log(data.users);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }, [router, refreshing]);
-
-  return (
-    <>
-      {isModalOpen && <CreatPostModal onClose={closeModal} />}
-      <button onClick={displayModal}>New Post</button>
-      <ul>
-        {users.map((user) => (
-          <li key={user.id}>{user.name}</li>
-        ))}
-      </ul>
-      <div className="flex flex-col justify-center items-center gap-6">
-        {posts.map((post) => (
-          <PostCard
-            key={post.id}
-            postId={post.id}
-            author={post.username}
-            title={post.content}
-            image={
-              post.image ||
-              "https://media.istockphoto.com/id/1500645450/fr/photo/image-floue-de-mouvement-de-la-circulation-sur-lautoroute.jpg?s=1024x1024&w=is&k=20&c=Kk2o63jL7LXfCs1MGT7NdeKldSQ-PXEAZYu0TJ_peH4="
+        try {
+            let url = `/api/posts?page=${pageNum}`;
+            if (currentFilter === 'following') {
+                url = `/api/posts/following/${auth.getUser()?.id}?page=${pageNum}`;
             }
-            likes={post.likeCount}
-            isLiked={post.isLikedByUser}
-          />
-        ))}
-      </div>
-    </>
-  );
+
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${auth.getToken()}` }
+            });
+
+            if (!res.ok) throw new Error('Erreur serveur');
+            
+            const data = await res.json();
+            const newPosts = data.posts || [];
+
+            setPosts(prev => pageNum === 1 ? newPosts : [...prev, ...newPosts]);
+            setHasMore(newPosts.length === 10);
+        } catch (error) {
+            console.error("Erreur de fetch :", error);
+        } finally {
+            setLoading(false);
+            isFetching.current = false;
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!auth.isAuthenticated()) {
+            router.push('/login');
+            return;
+        }
+
+        setPage(1);
+        fetchPosts(1, filter);
+
+        fetch('/api/users')
+            .then(res => res.json())
+            .then(data => setUsers(data.users || []))
+            .catch(err => console.error(err));
+            
+    }, [filter, router, fetchPosts]);
+
+    const handleLoadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchPosts(nextPage, filter);
+    };
+
+    const renderFilterBtn = (id: typeof filter, label: string) => (
+        <button
+            onClick={() => setFilter(id)}
+            className={`transition-all rounded-lg px-4 py-2 text-sm font-medium ${
+                filter === id 
+                    ? 'bg-white text-indigo-900 border-2 border-indigo-500 shadow-sm' 
+                    : 'bg-indigo-500 hover:bg-indigo-600 text-white'
+            }`}
+        >
+            {label}
+        </button>
+    );
+
+    return (
+        <div className="min-h-screen bg-gray-50">  
+            {isModalOpen && <CreatPostModal onClose={closeModal} />}
+            
+            <div className="p-6 flex flex-col items-center gap-6">
+                <MyButton onClick={displayModal} label="New Post" />
+
+                {/* Barre de Filtres */}
+                <div className="flex flex-row items-center w-full max-w-md justify-center gap-4">
+                    {renderFilterBtn('following', 'Suivis')}
+                    {renderFilterBtn('for-you', 'Pour toi')}
+                    {renderFilterBtn('recent', 'Récents')}
+                </div>
+
+                <div className="flex flex-col justify-center items-center gap-6 w-full pb-10">
+                    {posts
+                        .sort((a, b) => {
+                            if (filter === 'recent') {
+                                return new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime();
+                            }
+                            return calculatePostPoints(b) - calculatePostPoints(a);
+                        })
+                        .map((post, index) => (
+                            <div key={`${post.id}-${index}`} className="w-full flex flex-col items-center">
+                                {filter !== 'recent' && (
+                                    <span className="text-xs font-bold text-indigo-400 mb-1">
+                                        {Math.round(calculatePostPoints(post))} points
+                                    </span>
+                                )}
+                                <PostCard 
+                                    postId={post.id}
+                                    authorId={post.userId}
+                                    author={post.username}
+                                    title={post.content}
+                                    image={post.image || 'https://media.istockphoto.com/id/1500645450/...'}
+                                    likes={post.likeCount}
+                                    isLiked={post.isLikedByUser}
+                                    isAuthorFollowed={post.isAuthorFollowed}
+                                    
+                                />
+                            </div>
+                        ))}
+
+                    {hasMore && (
+                        <button
+                            onClick={handleLoadMore}
+                            disabled={loading}
+                            className={`mt-4 px-8 py-3 rounded-full font-semibold transition ${
+                                loading ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
+                        >
+                            {loading ? 'Chargement...' : 'Afficher plus'}
+                        </button>
+                    )}
+
+                    {!hasMore && posts.length > 0 && (
+                        <p className="text-gray-400 text-sm italic">Fin du flux</p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
 }
