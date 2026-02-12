@@ -26,7 +26,7 @@ export default function PostCard({
     image = "/docs/images/blog/image-1.jpg",
     likes = 0,
     isLiked = false,
-    isAuthorFollowed
+    isAuthorFollowed = false,
 }: PostCardProps) {
     const [likesCount, setLikesCount] = useState(likes);
     const [liked, setLiked] = useState(isLiked);
@@ -72,6 +72,7 @@ export default function PostCard({
             .then(data => {
                 setFollowed(data.following);
                 router.refresh();
+                
             })
             .catch(error => {
                 console.error("Erreur de fetch :", error);

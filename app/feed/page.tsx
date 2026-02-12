@@ -137,6 +137,8 @@ export default function Page() {
                                     image={post.image || 'https://media.istockphoto.com/id/1500645450/...'}
                                     likes={post.likeCount}
                                     isLiked={post.isLikedByUser}
+                                    isAuthorFollowed={post.isAuthorFollowed}
+                                    
                                 />
                             </div>
                         ))}
