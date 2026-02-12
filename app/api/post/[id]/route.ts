@@ -12,23 +12,27 @@ export async function GET(
         const { id } = await params;
         const numericId = parseInt(id, 10)
 
-        console.log("Recherche en BDD pour ID:", numericId);
+        const postDetail = await PostModel.findPostDetailById(numericId);
 
-        const post = await PostModel.findById(numericId);
-
-        if (!post) {
-            return NextResponse.json({ error: 'Non trouvé' }, { status: 404 });
+        if (!postDetail) {
+            return NextResponse.json({ error: 'Post not found' }, { status: 404 });
         }
 
         return NextResponse.json({
-            id: post.id,
-            name: post.userId,
-            email: post.content,
-            picture: post.image,
-            creation_date: post.creationDate,
+            id: postDetail.id,
+            content: postDetail.content,
+            image: postDetail.image,
+            creationDate: postDetail.creationDate,
+            // Infos de l'auteur du post
+            author: {
+                name: postDetail.authorName,
+                picture: postDetail.authorPicture
+            },
+            // Liste des commentaires avec le nom des commentateurs
+            comments: postDetail.comments
         });
+
     } catch (error) {
-        console.error(error);
-        return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+        return NextResponse.json({ error }, { status: 500 });
     }
 }
