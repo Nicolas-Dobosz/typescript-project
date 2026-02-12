@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
 					name: user.name,
 					email: user.email,
 					picture: user.picture,
+					isAdmin: user.isAdmin,
 				},
 				token,
 			},

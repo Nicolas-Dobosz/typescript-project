@@ -6,6 +6,7 @@ import {auth} from '@/app/lib/auth';
 import CreatPostModal from '../components/createPost';
 import PostCard from '../components/PostCard';
 import {Post, User} from "@/app/models";
+import {EnrichPost} from "@/app/models/Post";
 
 export default function Page() {
 	const router = useRouter();
@@ -14,7 +15,7 @@ export default function Page() {
 	const displayModal = () => {setModalOpen(true)}
 	const closeModal = () => {setModalOpen(false)};
 	const [users, setUsers] = useState<User[]>([]);
-	const [posts, setPosts] = useState<Post[]>([]);
+	const [posts, setPosts] = useState<EnrichPost[]>([]);
 
 	const [filter, setFilter] = useState<'following' | 'for-you' | 'recent'>('for-you');
 
@@ -47,7 +48,11 @@ export default function Page() {
 			return;
 		}
 
-		fetch('/api/posts')
+		fetch('/api/posts', {
+			headers: {
+				'Authorization': `Bearer ${auth.getToken()}`
+			}
+		})
 			.then(res => {
 				if (!res.ok) throw new Error('Réponse serveur non-JSON');
 				return res.json();
@@ -168,10 +173,12 @@ export default function Page() {
 						<PostCard
 							postId={post.id}
 							author={post.username}
+              authorId={post.userId}
 							title={post.content}
 							image={post.image || 'https://media.istockphoto.com/id/1500645450/fr/photo/image-floue-de-mouvement-de-la-circulation-sur-lautoroute.jpg?s=1024x1024&w=is&k=20&c=Kk2o63jL7LXfCs1MGT7NdeKldSQ-PXEAZYu0TJ_peH4='}
 							likes={post.likeCount}
 							isLiked={post.isLikedByUser}
+              isAuthorFollowed={post.isAuthorFollowed}
 						/>
 					</div>
 				))}

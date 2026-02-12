@@ -1,32 +1,35 @@
-import {redirect} from 'next/navigation';
+import { redirect } from "next/navigation";
+import PostDetail from "@/app/components/postDetail";
+import Comment from "@/app/components/comment";
+import BackButton from "@/app/components/BackButton";
 
 export default async function Page({
     params,
 }: {
     params: Promise<{ id: string }>;
 }) {
-
-    //const del = await PostModel.delete(5);
-
     const { id } = await params;
-
-    console.log("post id: ", id);
 
     const res = await fetch(`http://localhost:3000/api/post/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
     });
 
-    const post_data = await res.json();
-    console.log("post data: ", post_data);
+    const postData = await res.json();
 
     if (!res.ok) {
-        redirect('/feed');
+        redirect("/feed");
     }
 
     return (
         <div>
-
+            <div className="p-4">
+                <BackButton />
+            </div>
+            <div className="flex flex-col gap-10 items-center min-h-screen w-full py-10 px-4 bg-gray-50">
+                <PostDetail postData={postData} />
+                <Comment postData={postData} />
+            </div>
         </div>
     );
 }
