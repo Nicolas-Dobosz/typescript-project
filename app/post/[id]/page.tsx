@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import PostDetail from "@/app/components/postDetail";
 import Comment from "@/app/components/comment";
+import BackButton from "@/app/components/BackButton";
 
 export default async function Page({
     params,
@@ -21,9 +22,14 @@ export default async function Page({
     }
 
     return (
-        <div className="flex flex-col gap-10 items-center min-h-screen w-full py-10 px-4 bg-gray-50">
-            <PostDetail postData={postData} />
-            <Comment postData={postData} />
+        <div>
+            <div className="p-4">
+                <BackButton />
+            </div>
+            <div className="flex flex-col gap-10 items-center min-h-screen w-full py-10 px-4 bg-gray-50">
+                <PostDetail postData={postData} />
+                <Comment postData={postData} />
+            </div>
         </div>
     );
 }

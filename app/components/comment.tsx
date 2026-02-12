@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "../lib/auth";
 
-import { Trash } from 'lucide-react';
-
+import { Trash } from "lucide-react";
 
 interface PostDetailProps {
     postData: {
@@ -118,16 +117,13 @@ export default function Comment({ postData }: PostDetailProps) {
                 {[...postData.comments]
                     .sort(
                         (a, b) =>
-                            new Date(b.creationDate).getTime() -
-                            new Date(a.creationDate).getTime(),
+                            new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime(),
                     )
                     .map((comment) => (
                         <li key={comment.id}>
                             <div className="flex gap-4">
                                 <div className="shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
-                                    {comment.commenterName
-                                        ?.charAt(0)
-                                        .toUpperCase()}
+                                    {comment.commenterName?.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="flex-1 bg-gray-50 rounded-2xl rounded-tl-none p-4 min-w-0">
                                     {" "}
@@ -140,10 +136,13 @@ export default function Comment({ postData }: PostDetailProps) {
                                             <p className="text-[10px] text-gray-400 whitespace-nowrap">
                                                 {comment.creationDate}
                                             </p>
-                                            {comment.userId ==
-                                                auth.getUser().id && (
-                                                <button onClick={() => setCommentToDelete(comment.id)}>
-                                                    <Trash size={18} className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"/>
+                                            {(comment.userId === auth.getUser().id ||
+                                                auth.getUser().isAdmin === 1) && (
+                                                <button onClick={() => setCommentToDelete(comment.id)} className="group">
+                                                    <Trash
+                                                        size={18}
+                                                        className="text-gray-400 group-hover:text-red-500 transition-colors cursor-pointer"
+                                                    />
                                                 </button>
                                             )}
                                         </div>
@@ -167,15 +166,17 @@ export default function Comment({ postData }: PostDetailProps) {
             {commentToDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">Supprimer le commentaire ?</h3>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                            Supprimer le commentaire ?
+                        </h3>
                         <div className="flex gap-3 justify-end">
-                            <button 
+                            <button
                                 onClick={() => setCommentToDelete(null)}
                                 className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                             >
                                 Annuler
                             </button>
-                            <button 
+                            <button
                                 onClick={confirmDelete}
                                 className="px-4 py-2 text-sm font-bold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
                             >
