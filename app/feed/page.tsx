@@ -16,13 +16,27 @@ export default function Page() {
 	const [users, setUsers] = useState<User[]>([]);
 	const [posts, setPosts] = useState<Post[]>([]);
 
-	const [filter, setFilter] = useState<'following' | 'for-you'>('for-you');
+	const [filter, setFilter] = useState<'following' | 'for-you' | 'recent'>('for-you');
 
 	const onClickForYou = () => {
 		setFilter('for-you');
 	}
 	const onClickFollows = () => {
 		setFilter('following');
+	}
+	const onClickRecent = () => {
+		setFilter('recent');
+	}
+
+	const calculatePostPoints = (post: Post): number => {
+		const basePoints = 10;
+		const likePoints = post.likeCount * 2;
+		console.log(likePoints)
+		const ageInHours = (Date.now() - new Date(post.creationDate).getTime()) / (1000 * 60 * 60);
+		console.log(ageInHours)
+		const agePoints = Math.max(0, 20 - ageInHours);
+
+		return basePoints + likePoints + agePoints;
 	}
 
 
@@ -59,7 +73,7 @@ export default function Page() {
 		}, [router]);
 
 	useEffect(() => {
-		if (filter === "for-you") {
+		if (filter === "for-you" || filter === "recent") {
 			fetch('/api/posts')
 				.then(res => {
 					if (!res.ok) throw new Error('Réponse serveur non-JSON');
@@ -89,6 +103,8 @@ export default function Page() {
 
 			console.log("ok")
 		}
+
+
 	}, [filter]);
 
 
@@ -124,18 +140,41 @@ export default function Page() {
 					>
 						Pour toi
 					</button>
+					<button
+						onClick={onClickRecent}
+						className={`transition-all rounded-lg px-[1vw] py-[1vh] ${
+							filter === 'recent'
+								? 'bg-white text-indigo-900 border-2 border-indigo-500'
+								: 'bg-indigo-500 hover:bg-indigo-900 text-white'
+						}`}
+					>
+						Récents
+					</button>
 				</div>
-			{posts.map(post => (
-				<PostCard 
-					key={post.id}
-					postId={post.id}
-					author={post.username}
-					title={post.content}
-					image={post.image || 'https://media.istockphoto.com/id/1500645450/fr/photo/image-floue-de-mouvement-de-la-circulation-sur-lautoroute.jpg?s=1024x1024&w=is&k=20&c=Kk2o63jL7LXfCs1MGT7NdeKldSQ-PXEAZYu0TJ_peH4='}
-					likes={post.likeCount}
-					isLiked={post.isLikedByUser}
-				/>
-			))}
+			{posts
+				.sort((a, b) => {
+					if (filter === 'recent') {
+						return new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime();
+					}
+					else {
+						return calculatePostPoints(b) - calculatePostPoints(a);
+					}
+				})
+				.map(post => (
+					<div key={post.id}>
+						{filter !== 'recent' && (
+							<p className="text-purple-500">{calculatePostPoints(post)} points</p>
+						)}
+						<PostCard
+							postId={post.id}
+							author={post.username}
+							title={post.content}
+							image={post.image || 'https://media.istockphoto.com/id/1500645450/fr/photo/image-floue-de-mouvement-de-la-circulation-sur-lautoroute.jpg?s=1024x1024&w=is&k=20&c=Kk2o63jL7LXfCs1MGT7NdeKldSQ-PXEAZYu0TJ_peH4='}
+							likes={post.likeCount}
+							isLiked={post.isLikedByUser}
+						/>
+					</div>
+				))}
 			</div>
 		</>
 	);

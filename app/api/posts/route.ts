@@ -14,7 +14,9 @@ export async function GET(request: NextRequest) {
 				username: p.username,
 				content: p.content,
 				image: p.image,
-				picture: p.creationDate,
+				creationDate: p.creationDate,
+				likeCount: Number(p.likeCount) || 0,
+				isLikedByUser: Boolean(p.isLikedByUser),
 			})),
 		});
 	} catch (error) {
