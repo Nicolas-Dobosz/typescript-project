@@ -127,7 +127,7 @@ export default function Page() {
                             return calculatePostPoints(b) - calculatePostPoints(a);
                         })
                         .map((post, index) => (
-                            <div key={`${post.id}-${index}`} className="w-full flex flex-col items-center">
+                            <div key={`${post.id}-${index}`} className="max-w-[33vw] w-[33vw] flex flex-col items-center">
                                 <PostCard 
                                     postId={post.id}
                                     authorId={post.userId}

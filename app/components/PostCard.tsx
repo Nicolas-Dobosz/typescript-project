@@ -88,7 +88,7 @@ export default function PostCard({
     return (
 
         <div
-            className="max-w-md bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-8 cursor-pointer"
+            className="w-[100%] bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-8 cursor-pointer"
             onClick={() => router.push(`/post/${postId}`)}
         >
             <div className="flex items-center gap-3 p-3">
