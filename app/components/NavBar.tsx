@@ -2,8 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, User } from 'lucide-react';
+import {usePathname} from 'next/navigation';
+import {ArrowRightFromLine, Home, User} from 'lucide-react';
 
 export default function SidebarNotch() {
   const pathname = usePathname();
@@ -11,11 +11,11 @@ export default function SidebarNotch() {
   const links = [
     { href: '/', icon: <Home size={24} />, active: pathname === '/' },
     { href: '/profile/me', icon: <User size={24} />, active: pathname === '/profile/me' },
+    { href: '/logout', icon: <ArrowRightFromLine size={24} />, active: pathname === '/logout' },
   ];
 
   return (
     <nav className="fixed left-2 top-1/2 -translate-y-1/2 z-50">
-      {/* L'encoche collée au bord gauche */}
       <div className="flex flex-col gap-2 bg-gray-900/90 backdrop-blur-md border-y border-r border-white/10 p-2 rounded-2xl shadow-xl">
         {links.map((link) => (
           <Link key={link.href} href={link.href}>
