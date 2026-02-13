@@ -128,11 +128,6 @@ export default function Page() {
                         })
                         .map((post, index) => (
                             <div key={`${post.id}-${index}`} className="w-full flex flex-col items-center">
-                                {filter !== 'recent' && (
-                                    <span className="text-xs font-bold text-indigo-400 mb-1">
-                                        {Math.round(calculatePostPoints(post))} points
-                                    </span>
-                                )}
                                 <PostCard 
                                     postId={post.id}
                                     authorId={post.userId}

@@ -83,6 +83,8 @@ export default function PostCard({
                 console.error("Erreur de fetch :", error);
             });
     }
+
+    console.log(authorId, " / ", auth.getUser().id)
     return (
 
         <div
@@ -104,7 +106,7 @@ export default function PostCard({
                 >
                     {author}
                 </a>
-                { authorId == auth.getUser().id ? (
+                { authorId != auth.getUser().id ? (
                 <button
                     className={`transition-all duration-200 px-3 py-1 rounded-lg font-semibold text-xs ml-auto ${
                         followed
