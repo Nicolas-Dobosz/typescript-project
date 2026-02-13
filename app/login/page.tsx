@@ -13,7 +13,7 @@ export default function LoginPage() {
 
 	useEffect(() => {
 		if (auth.isAuthenticated()) {
-			router.push('/feed');
+			router.push('/');
 		}
 	}, [router]);
 
@@ -43,7 +43,7 @@ export default function LoginPage() {
 
 			auth.setAuth(data.token, data.user);
 
-			router.push('/feed');
+			router.push('/');
 		} catch {
 			setError('Erreur serveur');
 		}

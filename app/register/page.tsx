@@ -15,7 +15,7 @@ export default function RegisterPage() {
 
 	useEffect(() => {
 		if (auth.isAuthenticated()) {
-			router.push('/feed');
+			router.push('/');
 		}
 	}, [router]);
 
@@ -56,7 +56,7 @@ export default function RegisterPage() {
 
 			auth.setAuth(data.token, data.user);
 
-			router.push('/feed');
+			router.push('/');
 		} catch {
 			setError('Erreur serveur');
 		}

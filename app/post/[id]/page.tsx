@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import {redirect} from "next/navigation";
 import PostDetail from "@/app/components/postDetail";
 import Comment from "@/app/components/comment";
 import BackButton from "@/app/components/BackButton";
@@ -18,7 +18,7 @@ export default async function Page({
     const postData = await res.json();
 
     if (!res.ok) {
-        redirect("/feed");
+        redirect("/");
     }
 
     return (

@@ -2,15 +2,10 @@ import {User} from "@/app/models";
 
 export const auth = {
 	getToken() {
+		if (typeof window === 'undefined') return null;
 		console.log("Token actuel:", localStorage.getItem('token'));
 		const token = localStorage.getItem('token');
-
-		if (!token) {
-			this.logout()
-		}
-		else {
-			return token;
-		}
+		return token || null;
 	},
 
 	getUser(): any | null {
