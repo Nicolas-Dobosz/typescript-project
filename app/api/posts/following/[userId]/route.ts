@@ -13,12 +13,15 @@ export async function GET(request: NextRequest, {params}: {params: Promise<{user
 		return NextResponse.json({
 			posts: posts.map(p => ({
 				id: p.id,
+				userId: p.userId,
 				username: p.username,
+				iconUser: p.iconUser,
 				content: p.content,
 				image: p.image,
 				creationDate: p.creationDate,
-				likeCount: p.likeCount,
-				isLikedByUser: p.isLikedByUser,
+				likeCount: Number(p.likeCount) || 0,
+				isLikedByUser: Boolean(p.isLikedByUser),
+				isAuthorFollowed: p.isAuthorFollowed,
 			})),
 		});
 	} catch (error) {
