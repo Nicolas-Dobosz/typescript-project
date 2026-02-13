@@ -61,7 +61,7 @@ export const PostModel = {
 		return Promise.all(posts.map(post => this.enrichPost(post, currentUserId)));
 	},
 
-	async findPostsFollowersByUserId(userId: number, currentUserId?: number): Promise<Post[]> {
+	async findPostsFollowersByUserId(userId: number, currentUserId?: number): Promise<EnrichPost[]> {
 		console.log("===== DEBUG findPostsFollowersByUserId =====");
 		console.log("userId (followerId):", userId, "type:", typeof userId);
 		console.log("currentUserId:", currentUserId);
