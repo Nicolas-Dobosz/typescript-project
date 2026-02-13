@@ -15,6 +15,7 @@ export interface EnrichPost extends Post {
 	likeCount: number;
 	isLikedByUser: boolean;
 	username: string;
+	iconUser: string;
 	isAuthorFollowed: boolean;
 }
 
@@ -26,6 +27,7 @@ export const PostModel = {
 			likeCount: await LikeModel.countByPostId(post.id),
 			isLikedByUser: currentUserId ? await LikeModel.exists(currentUserId, post.id) : false,
 			username: user?.name || 'Inconnu',
+			iconUser: user?.picture,
 			isAuthorFollowed: currentUserId ? await FollowModel.exists(post.userId, currentUserId) : false,
 		};
 	},
