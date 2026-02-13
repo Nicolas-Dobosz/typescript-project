@@ -138,7 +138,7 @@ export default function Page() {
                                     authorId={post.userId}
                                     author={post.username}
                                     title={post.content}
-                                    image={post.iconUser || 'https://media.istockphoto.com/id/1500645450/...'}
+                                    image={post.image || 'https://media.istockphoto.com/id/1500645450/...'}
                                     likes={post.likeCount}
                                     isLiked={post.isLikedByUser}
                                     isAuthorFollowed={post.isAuthorFollowed}                                    
